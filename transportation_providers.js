@@ -1,4 +1,4 @@
-import { Role, Selector } from 'testcafe';
+import { Role, Selector, RequestHook } from 'testcafe';
 const fileSystem = require('fs');
 
 var localCredentials = 'creds.txt'
@@ -6,14 +6,10 @@ var user;
 var pwd;
 
 fileSystem.readFile(localCredentials, 'utf-8', (err,data)=> {
-    console.log(data)
     var mid = data.indexOf(',')
     user = data.substring(0,mid)
     pwd = data.substring(mid+1,data.length)
 })
-
-
-// will read in from local file
 
 const myRole = Role('https://login.microsoftonline.com/', async t => {
     await t
@@ -38,7 +34,6 @@ fixture
             //.click('button[class="MuiButtonBase-root MuiButton-root MuiButton-contained jss3 MuiButton-containedPrimary"]')
 
             .wait(500);
-
     });
 
 

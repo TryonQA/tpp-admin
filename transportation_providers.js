@@ -25,6 +25,7 @@ const myRole = Role('https://login.microsoftonline.com/', async t => {
 fixture 
     .disablePageCaching `Transportation Providers Test Automation`
     .page `https://tpp-qa.americanlogistics.com/providers`
+    /*
     .beforeEach(async t=> {
         await t
             .useRole(myRole)
@@ -35,13 +36,15 @@ fixture
 
             .wait(500);
     });
+    */
 
 
 test('filter - clear to transport - 1.1.1', async t => {
     await t
         .click('button[class="MuiButtonBase-root MuiButton-root MuiButton-contained jss3 MuiButton-containedPrimary"]')
+        
         .click('div[class="MuiSelect-root MuiSelect-select MuiSelect-selectMenu MuiInputBase-input MuiInput-input"]')
-        .click('li[tabindex="-1"]')
+        //.click('li[tabindex="-1"]')
 
-        .expect(Selector('div[class="MuiDataGrid-cell  MuiDataGrid-cellWithRenderer MuiDataGrid-cellLeft"][data-rowindex="0"]').withAttribute('data-field', 'IsClearToTransport').exists).ok();
+        //.expect(Selector('div[class="MuiDataGrid-cell  MuiDataGrid-cellWithRenderer MuiDataGrid-cellLeft"][data-rowindex="0"]').withAttribute('data-field', 'IsClearToTransport').exists).ok();
 });

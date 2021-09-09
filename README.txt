@@ -3,7 +3,7 @@ text file should contain one line formatted:
 username,password
 
 --SELENIUM NOTES--
-REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingly
+REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingl
 Finished Filter checks
 Qs - switching logic on first four filters
 

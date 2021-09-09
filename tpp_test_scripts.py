@@ -80,20 +80,9 @@ def filter_reset(driver,open=True,close=True):
     if close:
         close_filters_menu(driver)
 
-
-def filter_checks(driver,filter_buttons_list):
-    #collect on screen elements
-    readout = "Testing "
-    if len(filter_buttons_list)>1:
-        readout += "COMBO "
-    for nums in filter_buttons_list:
-        readout += FILTER_TAGS[nums]
-        readout += ' / '
-    print(readout)
-    time.sleep(2)
+def get_company_data(driver):
     co_entries_orig = get_company_entries(driver)
     num_entries = len(co_entries_orig)
-    score = 0
     co_data = []
     i = 0
     # get co data
@@ -106,6 +95,10 @@ def filter_checks(driver,filter_buttons_list):
             time.sleep(2)
             title_element = driver.find_element_by_xpath('//span[@class="MuiTypography-root MuiCardHeader-title MuiTypography-h5 MuiTypography-displayBlock"]/div/div')
             this_co_name = title_element.text
+            legal_data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"]/div/div/div/div')
+            l_data_text = []
+            for ld_pt in legal_data:
+                l_data_text.append(ld_pt.text)
             data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-item MuiGrid-grid-sm-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-3"]/div/div/div[2]')
             data_text = []
             for d_pt in data:
@@ -118,7 +111,17 @@ def filter_checks(driver,filter_buttons_list):
             ins_data_text = []
             for i_pt in ins_data:
                 ins_data_text.append(i_pt.text)
-            this_co_data = [data_text[5],[ins_data_text[6],ins_data_text[7],ins_data_text[8]],data_text[4],data_text[6],data_text[7],this_co_name]
+            #this_co_data = [data_text[5],[ins_data_text[6],ins_data_text[7],ins_data_text[8]],data_text[4],data_text[6],data_text[7],this_co_name]
+            this_co_data = {
+                "clear":data_text[5],
+                "ins_list":[ins_data_text[6],ins_data_text[7],ins_data_text[8]],
+                "wheelchair":data_text[4],
+                "drug":data_text[6],
+                "diversity":data_text[7],
+                "name":this_co_name,
+                "owner_first":l_data_text[47],
+                "owner_last":l_data_text[49]
+            }
 
             co_data.append(this_co_data)
             i+=1
@@ -128,46 +131,60 @@ def filter_checks(driver,filter_buttons_list):
                     b.click()
                     break
             time.sleep(1)
+    return co_data
+
+def filter_checks(driver,filter_buttons_list):
+    #collect on screen elements
+    readout = "Testing "
+    if len(filter_buttons_list)>1:
+        readout += "COMBO "
+    for nums in filter_buttons_list:
+        readout += FILTER_TAGS[nums]
+        readout += ' / '
+    print(readout)
+    score = 0
+    time.sleep(2)
+    co_data = get_company_data(driver)
     
     #check co data
     for d_list in co_data:
         this_pass = True
         if 0 in filter_buttons_list:
-            if d_list[0] != 'Yes':
+            if d_list["clear"] != 'Yes':
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[0])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[0])
         if 1 in filter_buttons_list:
-            if d_list[0] != 'No':
+            if d_list["clear"] != 'No':
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[1])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[1])
         if 2 in filter_buttons_list:
             all_under = True
-            for i_data in d_list[1]:
+            for i_data in d_list["ins_list"]:
                 if len(i_data) >= 13:
                     all_under = False
             if all_under:
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[2])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[2])
         if 3 in filter_buttons_list:
             all_over = True
-            for i_data in d_list[1]:
+            for i_data in d_list["ins_list"]:
                 if len(i_data) < 13:
                     all_over = False
             if all_over:
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[3])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[3])
         if 4 in filter_buttons_list:
-            if d_list[2] != 'Yes':
+            if d_list["wheelchair"] != 'Yes':
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[4])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[4])
         if 5 in filter_buttons_list:
-            if d_list[3] != 'Yes':
+            if d_list["drug"] != 'Yes':
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[5])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[5])
         if 6 in filter_buttons_list:
-            if d_list[4] != 'Yes':
+            if d_list["diversity"] != 'Yes':
                 this_pass = False
-                print(d_list[5] + " FAILED " + FILTER_TAGS[6])
+                print(d_list["name"] + " FAILED " + FILTER_TAGS[6])
         if this_pass:
             score+=1
 
@@ -267,25 +284,84 @@ def run_clear_filter_test(driver):
     else:
         print('FAILED')
 
+def text_to_search(driver,search_text,element_key):
+    if element_key == "name_tp":
+        search_field = driver.find_element_by_xpath('//input[@placeholder="Search by name"]')
+    search_field.send_keys(search_text)
+    time.sleep(2)
+
+def search_by_name_test(driver,search_list,expected_results=None):
+    possibles = len(search_list)
+    for to_search in search_list:
+        readout = "Searching and testing '" + to_search + "'"
+        if expected_results == 1:
+            readout += " for EXACT match"
+        if expected_results == 0:
+            readout += " for NO RESULT"
+        print(readout)
+        text_to_search(driver,to_search,"name_tp")
+        to_search_to_check = to_search.lower()
+        results = get_company_data(driver)
+        num_results = len(get_company_entries(driver))
+        passing_results = 0
+        for co in results:
+            name = co["name"]
+            print(name)
+            if expected_results != 0:
+                if to_search_to_check in name.lower() or to_search_to_check in co["owner_first"].lower() or to_search_to_check in co["owner_last"].lower():
+                    if to_search_to_check in name.lower():
+                        print("PASS - Company name")
+                    else:
+                        print("PASS - Owner name")
+                    passing_results += 1
+                else:
+                    print("FAIL")
+            else:
+                print("Above errant result detected")
+                passing_results-=1
+        if num_results > 0:
+            if expected_results != 0:
+                score = (passing_results/num_results)*100.0
+                print(str(num_results) + " returned results tested.")
+                print(str(score)+ '%' + " contained '"+ to_search + "'")
+                if expected_results == 1:
+                    if passing_results > 1:
+                        print("None exact match - " + str(passing_results) + " results - FAIL")
+                    else:
+                        print("Exact match single result PASS")
+            else:
+                print("FAIL - " + str(abs(passing_results)) + " errant results found.")
+        else:
+            if expected_results != 0:
+                print("No results to test.")
+            else:
+                print("PASS -No search results confirmed.")
+        driver.refresh()
 
 
 login_tpp(driver)
 time.sleep(2)
 
-run_clear_filter_test(driver)
+should_partial = ['bobby','end','rob','be','transp']
+#search_by_name_test(driver,should_partial)
+should_full = ['Character Test Incorporated','Endwerpower Inc','Zeepickamazz Direct Corp.']
+search_by_name_test(driver,should_full,1)
+shouldnt = ["zzzz","qqqq","pppp"]
+search_by_name_test(driver,shouldnt,0)
+# TODO add accumulator in test function to measure total passes v fails
+# TODO adapt for by coverage
 
-#UNCOMMENT to run all filter tests
-#run_all_filter_tests(driver)    
+text_to_search(driver,"Test Clear Button","name_tp")
+clear_button = driver.find_element_by_xpath('//button[@data-testid="clear"]')
+clear_button.click()
+# TODO verify clearance
 
-
-"""
-#SINGLE TEST
-filter_clicks = [0,2,5]
-filter_clicker(driver,filter_clicks)
-time.sleep(2)
-filter_checks(driver,filter_clicks)
-filter_reset(driver)
-"""
+#UNCOMMENT to run individual tests
+#run_clear_filter_test(driver)
+#run_all_filter_tests(driver)  
+# Need to create entries for [1,2,5] / [1,2,6] for testing  
+#run_single_filter_test(driver,[1,2,5])
+#run_single_filter_test(driver,[3,4])
 
 #close_filters_menu(driver)
 time.sleep(3)

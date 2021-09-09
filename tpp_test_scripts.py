@@ -228,43 +228,64 @@ def run_all_filter_tests(driver):
                             for i2 in range(i,len(click_list),1):
                                 click_list[i2] = click_list[i2-1]+1
                         break
-    """         
-    click_list = [6]
-    while click_list[0]>=0:
-        print(click_list)
-        
-        if click_list[-1] == 6 and len(click_list) > 6 - click_list[0]:
-            click_list = [(click_list[0]-1)]
-        else:
-            if len(click_list)>1 and click_list[-1] > click_list[-2]+1:
-                click_list[-1] -= 1
-            else:
-                click_list.append(6)
-    """ 
+
+def run_clear_filter_test(driver):
+    print('TESTING - Filter pop-up - CLEAR FILTER Button:')
+    test_clicks = [0,2,4,6]
+
+    filter_clicker(driver,test_clicks,False)
+
+    #check clicks match ordered clicks
+    checkboxes = driver.find_elements_by_xpath('//span[@class="MuiIconButton-label"]/input')
+
+    check_i = 0
+    all_checked = True
+    for c in checkboxes:
+        checked_atr = c.get_attribute('checked')
+        if check_i in test_clicks:
+            if checked_atr != 'true':
+                all_checked = False
+        #print(checked_atr)
+        check_i += 1
+    #print(all_checked)
+
+    filter_reset(driver,False,False)
+
+    checkboxes_after = driver.find_elements_by_xpath('//span[@class="MuiIconButton-label"]/input')
+    check_i = 0
+    none_checked = True
+    for c in checkboxes_after:
+        checked_atr = c.get_attribute('checked')
+        if checked_atr != None:
+            none_checked = False
+        #print(checked_atr)
+        check_i += 1
+    #print(none_checked)
+
+    if all_checked and none_checked:
+        print('Passed')
+    else:
+        print('FAILED')
+
+
 
 login_tpp(driver)
 time.sleep(2)
 
-filter_clicker(driver,[0,1,2,3,4,5,6],False)
-filter_reset(driver,False,False)
-# need filter test
+run_clear_filter_test(driver)
 
-#loop this for all combos
-run_all_filter_tests(driver)    
+#UNCOMMENT to run all filter tests
+#run_all_filter_tests(driver)    
+
 
 """
-#FILTER CHECK DEMO
+#SINGLE TEST
 filter_clicks = [0,2,5]
 filter_clicker(driver,filter_clicks)
 time.sleep(2)
 filter_checks(driver,filter_clicks)
 filter_reset(driver)
 """
-
-
-
-
-
 
 #close_filters_menu(driver)
 time.sleep(3)

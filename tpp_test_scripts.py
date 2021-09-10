@@ -6,6 +6,8 @@ PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
 
 FILTER_TAGS = ["Clear to transport","Not clear to transport",">=1000000","<1000000",\
     "Wheelchair v. available","Has drug testing","Has supplier diversity"]
+COVERAGE_SEARCH_KEY = "coverage_tp"
+NAME_SEARCH_KEY = "name_tp"
 
 creds = open('creds.txt')
 creds_data = creds.readline()
@@ -97,8 +99,11 @@ def get_company_data(driver):
             this_co_name = title_element.text
             legal_data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"]/div/div/div/div')
             l_data_text = []
+            #test = 0
             for ld_pt in legal_data:
+                #print(str(test)+" - "+ld_pt.text)
                 l_data_text.append(ld_pt.text)
+                #test+=1
             data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-item MuiGrid-grid-sm-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-3"]/div/div/div[2]')
             data_text = []
             for d_pt in data:
@@ -120,7 +125,8 @@ def get_company_data(driver):
                 "diversity":data_text[7],
                 "name":this_co_name,
                 "owner_first":l_data_text[47],
-                "owner_last":l_data_text[49]
+                "owner_last":l_data_text[49],
+                "coverage_area":l_data_text[93]
             }
 
             co_data.append(this_co_data)
@@ -284,13 +290,27 @@ def run_clear_filter_test(driver):
     else:
         print('FAILED')
 
+
+def search_element_by_key(driver,element_key):
+    if element_key == NAME_SEARCH_KEY:
+        element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]')
+    if element_key == COVERAGE_SEARCH_KEY:
+        element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]')
+    return element
+
+def clear_element_by_key(driver,element_key):
+    if element_key == NAME_SEARCH_KEY:
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]//ancestor::div[1]/div/button')
+    if element_key == COVERAGE_SEARCH_KEY:
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]//ancestor::div[1]/div/button')
+    return clear_element
+
 def text_to_search(driver,search_text,element_key):
-    if element_key == "name_tp":
-        search_field = driver.find_element_by_xpath('//input[@placeholder="Search by name"]')
+    search_field = search_element_by_key(driver,element_key)
     search_field.send_keys(search_text)
     time.sleep(2)
 
-def search_by_name_test(driver,search_list,expected_results=None):
+def search_test(driver,search_list,test_field_key,expected_results=None):
     possibles = len(search_list)
     for to_search in search_list:
         readout = "Searching and testing '" + to_search + "'"
@@ -299,7 +319,7 @@ def search_by_name_test(driver,search_list,expected_results=None):
         if expected_results == 0:
             readout += " for NO RESULT"
         print(readout)
-        text_to_search(driver,to_search,"name_tp")
+        text_to_search(driver,to_search,test_field_key)
         to_search_to_check = to_search.lower()
         results = get_company_data(driver)
         num_results = len(get_company_entries(driver))
@@ -308,14 +328,21 @@ def search_by_name_test(driver,search_list,expected_results=None):
             name = co["name"]
             print(name)
             if expected_results != 0:
-                if to_search_to_check in name.lower() or to_search_to_check in co["owner_first"].lower() or to_search_to_check in co["owner_last"].lower():
-                    if to_search_to_check in name.lower():
-                        print("PASS - Company name")
+                if test_field_key == NAME_SEARCH_KEY:
+                    if to_search_to_check in name.lower() or to_search_to_check in co["owner_first"].lower() or to_search_to_check in co["owner_last"].lower():
+                        if to_search_to_check in name.lower():
+                            print("PASS - Company name")
+                        else:
+                            print("PASS - Owner name")
+                        passing_results += 1
                     else:
-                        print("PASS - Owner name")
-                    passing_results += 1
-                else:
-                    print("FAIL")
+                        print("FAIL")
+                elif test_field_key == COVERAGE_SEARCH_KEY:
+                    if to_search_to_check in co["coverage_area"].lower():
+                        print("PASS")
+                        passing_results += 1
+                    else:
+                        print("FAIL")
             else:
                 print("Above errant result detected")
                 passing_results-=1
@@ -338,23 +365,35 @@ def search_by_name_test(driver,search_list,expected_results=None):
                 print("PASS -No search results confirmed.")
         driver.refresh()
 
+def test_clear_search(driver,test_field_key):
+    text_to_search(driver,"Test Clear Button",test_field_key)
+    search_element = search_element_by_key(driver,test_field_key)
+    pre_value = search_element.get_attribute('value')
+    #print(pre_value)
+    clear_button = clear_element_by_key(driver,test_field_key)
+    clear_button.click()
+    search_element = search_element_by_key(driver,test_field_key)
+    value = search_element.get_attribute('value')
+    #print(value)
+    if len(pre_value) > 0 and value == "":
+        print('Clear Text Button - '+ test_field_key +' - PASSED')
+
 
 login_tpp(driver)
 time.sleep(2)
 
 should_partial = ['bobby','end','rob','be','transp']
-#search_by_name_test(driver,should_partial)
+#search_test(driver,should_partial,NAME_SEARCH_KEY)
 should_full = ['Character Test Incorporated','Endwerpower Inc','Zeepickamazz Direct Corp.']
-search_by_name_test(driver,should_full,1)
+#search_test(driver,should_full,NAME_SEARCH_KEY,1)
 shouldnt = ["zzzz","qqqq","pppp"]
-search_by_name_test(driver,shouldnt,0)
+#search_test(driver,shouldnt,NAME_SEARCH_KEY,0)
 # TODO add accumulator in test function to measure total passes v fails
-# TODO adapt for by coverage
+should_coverage = ["333","bos"]
+#search_test(driver,should_coverage,COVERAGE_SEARCH_KEY)
 
-text_to_search(driver,"Test Clear Button","name_tp")
-clear_button = driver.find_element_by_xpath('//button[@data-testid="clear"]')
-clear_button.click()
-# TODO verify clearance
+test_clear_search(driver,COVERAGE_SEARCH_KEY)
+test_clear_search(driver,NAME_SEARCH_KEY)
 
 #UNCOMMENT to run individual tests
 #run_clear_filter_test(driver)
@@ -363,8 +402,8 @@ clear_button.click()
 #run_single_filter_test(driver,[1,2,5])
 #run_single_filter_test(driver,[3,4])
 
-#close_filters_menu(driver)
+
 time.sleep(3)
-#test_1(driver)
+
 #driver.close()
 driver.quit()

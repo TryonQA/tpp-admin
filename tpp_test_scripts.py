@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
-import time
+import time, random
+
 PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
 ## ADJUST ABOVE BASED ON LOCAL INSTALL
 
@@ -16,11 +17,14 @@ user = creds_data[:comma]
 password = creds_data[comma+1:]
 creds.close()
 
+dev_url = 'https://tpp-dev.americanlogistics.com/providers'
+qa_url = 'https://tpp-qa.americanlogistics.com/providers'
+
 driver = webdriver.Chrome(PATH)
 driver.implicitly_wait(4)
 
 def login_tpp(driver):
-    driver.get('https://tpp-qa.americanlogistics.com/providers')
+    driver.get(dev_url)
     #time.sleep(2)
     button = driver.find_element_by_class_name('MuiButton-containedPrimary')
     button.click()
@@ -41,6 +45,9 @@ def login_tpp(driver):
 
     c_button = driver.find_element_by_id('idSIButton9')
     c_button.click()
+
+def scroll_top(driver):
+    driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
 
 def open_filters_menu(driver):
     driver.refresh()
@@ -119,7 +126,7 @@ def get_company_data(driver):
             #this_co_data = [data_text[5],[ins_data_text[6],ins_data_text[7],ins_data_text[8]],data_text[4],data_text[6],data_text[7],this_co_name]
             this_co_data = {
                 "clear":data_text[5],
-                "ins_list":[ins_data_text[6],ins_data_text[7],ins_data_text[8]],
+                "ins_list":[ins_data_text[3],ins_data_text[3],ins_data_text[5]],
                 "wheelchair":data_text[4],
                 "drug":data_text[6],
                 "diversity":data_text[7],
@@ -128,7 +135,7 @@ def get_company_data(driver):
                 "owner_last":l_data_text[49],
                 "coverage_area":l_data_text[93]
             }
-
+            print(this_co_data['ins_list'])
             co_data.append(this_co_data)
             i+=1
             buttons2 = driver.find_elements_by_xpath('//a')
@@ -151,6 +158,7 @@ def filter_checks(driver,filter_buttons_list):
     score = 0
     time.sleep(2)
     co_data = get_company_data(driver)
+    num_entries = len(co_data)
     
     #check co data
     for d_list in co_data:
@@ -362,7 +370,7 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
             if expected_results != 0:
                 print("No results to test.")
             else:
-                print("PASS -No search results confirmed.")
+                print("PASS - No search results confirmed.")
         driver.refresh()
 
 def test_clear_search(driver,test_field_key):
@@ -378,10 +386,527 @@ def test_clear_search(driver,test_field_key):
     if len(pre_value) > 0 and value == "":
         print('Clear Text Button - '+ test_field_key +' - PASSED')
 
+def click_entry(driver,index):
+    co_entries = get_company_entries(driver)
+    company = co_entries[index] 
+    company.click()
+
+def test_back_button(driver):
+    #this can be made more general
+    start_url = driver.current_url
+    #print(start_url)
+    #Replace with nav to?
+    click_entry(driver,0)
+    #Replace with nav out?
+    buttons2 = driver.find_elements_by_xpath('//a')
+    for b in buttons2:
+        if b.text == "Back to Transportation Providers":
+            b.click()
+            break
+    end_url = driver.current_url
+    #print(end_url)
+    if start_url == end_url:
+        print('Back to TP button - PASS')
+    else:
+        print('Back to TP button - FAIL')
+
+def row_counter(driver,render_field_index = 0):
+    render_fields = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-renderingZone"]')
+    doc_list = render_fields[render_field_index]
+    docs = doc_list.find_elements_by_xpath('.//div[@role="row"]')
+    return len(docs)
+
+def click_all_date_buttons(driver):
+    date_buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiIconButton-root"]')
+    for db in date_buttons:
+        driver.execute_script("arguments[0].scrollIntoView();", db)
+        db.click()
+        time.sleep(0.5)
+        dates = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiIconButton-root MuiPickersDay-day"]')
+        dates[random.randint(0,len(dates)-1)].click()
+        time.sleep(0.5)
+
+def dropdown_handler(driver,id,click_index):
+    scroll_top(driver)
+    st_dropdown = driver.find_element_by_xpath('//div[@id="'+id+'"]')
+    driver.execute_script("arguments[0].scrollIntoView();", st_dropdown)
+    st_dropdown.click()
+    time.sleep(1)
+    st_options = driver.find_elements_by_xpath('//li[@role="option"]')
+    st_options[click_index].click()
+
+V_NAME = "aeiou"
+C_NAME = ["b","br","cr","ch","g","gr","m","n","l","cl","d","fr","r","s","st","j","p","c"]
+E_NAME = ['d','b','bb','ck','rl','g','ll','nd','n','te','hn','tt','se','l']
+def get_random_name():
+    name = ""
+    if random.randint(0,3) == 0:
+        name+= V_NAME[random.randint(0,len(V_NAME)-1)]
+    name += C_NAME[random.randint(0,len(C_NAME)-1)]
+    name += V_NAME[random.randint(0,len(V_NAME)-1)]
+    if random.randint(0,6) == 0:
+        name += V_NAME[random.randint(0,len(V_NAME)-1)]
+    name += E_NAME[random.randint(0,len(E_NAME)-1)]
+    if random.randint(0,6) == 0:
+        name += V_NAME[random.randint(0,len(V_NAME)-1)]
+    if random.randint(0,4) == 0:
+        name += 'y'
+    return name
+
+DIGITS = '0123456789'
+def get_random_number(digits,phone = False):
+    number = ''
+    if phone:
+        number += DIGITS[random.randint(2,len(DIGITS)-1)]
+        for i in range(digits-1):
+            number+= DIGITS[random.randint(0,len(DIGITS)-1)]
+    else:    
+        for i in range(digits):
+            number+= DIGITS[random.randint(0,len(DIGITS)-1)]
+    return number
+
+CHARS = 'abcdefghijklmnopqrstuvwxyz'
+def get_random_char(digits):
+    chars=""
+    for i in range(digits):
+        chars += CHARS[random.randint(0,len(DIGITS)-1)]
+    return chars
+
+def complete_doc_upload(driver):
+    doc_type_button = driver.find_element_by_xpath('//label[contains(text(),"Document type")]//ancestor::div[1]')
+    doc_type_button.click()
+    types_list = driver.find_elements_by_xpath('//ul[@role="listbox"]/li')
+    # list contains 15 types
+    types_list[8].click()
+    date_buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiIconButton-root"]')
+    for db in date_buttons:
+        db.click()
+        dates = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiIconButton-root MuiPickersDay-day"]')
+        dates[14].click()
+    file_input = driver.find_element_by_xpath('//input[@id="fileUploadButton"]')
+    file_input.send_keys("C:\\Users\\drgre\\Tryon\\tpp-admin\\test.pdf")
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(3)
+
+def print_inputs(driver):
+    inputs = driver.find_elements_by_xpath('//input')
+    for i in inputs:
+        print(i.get_attribute('name'))
+
+def complete_driver_form(driver):
+    click_all_date_buttons(driver)
+    first = get_random_name()
+    phone = get_random_number(10,True)
+    last = get_random_name()
+    
+    driver.find_element_by_xpath('//input[@name="FirstName"]').send_keys(first)
+    driver.find_element_by_xpath('//input[@name="LastName"]').send_keys(last)
+    driver.find_element_by_xpath('//input[@name="Email"]').send_keys(first[0]+'_'+last+'@int.com')
+    driver.find_element_by_xpath('//input[@name="DriverPhone"]').send_keys(phone)
+    driver.find_element_by_xpath('//input[@name="DriversLicenseNumber"]').send_keys(get_random_number(8))
+    driver.find_element_by_xpath('//input[@name="EmergencyContactFirstName"]').send_keys(get_random_name())
+    driver.find_element_by_xpath('//input[@name="EmergencyContactLastName"]').send_keys(last)
+    driver.find_element_by_xpath('//input[@name="EmergencyContactPhone"]').send_keys(phone[0:3]+get_random_number(7))
+
+    dropdown_handler(driver,"mui-component-select-MessagingMethod",2)
+    dropdown_handler(driver,"mui-component-select-DriverLicenseIssuedInStateCode",random.randint(0,49))
+
+    save_driver_button = driver.find_element_by_xpath('//span[contains(text(), "Save")]')
+    save_driver_button.click()
+
+    time.sleep(1)
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button.click()
+
+    time.sleep(2)
+
+def complete_vehicle_form(driver):
+    click_all_date_buttons(driver)
+    driver.find_element_by_xpath('//input[@name="LicensePlate"]').send_keys(get_random_char(3)+get_random_number(3))
+    driver.find_element_by_xpath('//input[@name="VehicleVIN"]').send_keys(get_random_char(2)+get_random_number(1)+\
+        get_random_char(2)+get_random_number(2)+get_random_char(1)+get_random_number(1)+get_random_char(2)+get_random_number(6))
+    driver.find_element_by_xpath('//input[@name="VehicleMake"]').send_keys('Ford')
+    driver.find_element_by_xpath('//input[@name="VehicleModel"]').send_keys('Transit 350')
+    driver.find_element_by_xpath('//input[@name="VehicleYear"]').send_keys('20'+get_random_number(2))
+
+    dropdown_handler(driver,"mui-component-select-LicenseStateCode",random.randint(0,49))
+    # TODO Waiting on fix -> VehicleTypeID
+    dropdown_handler(driver,"mui-component-select-VehicleColorID",random.randint(0,16))
+
+    save_v_button = driver.find_element_by_xpath('//span[contains(text(), "Save")]')
+    save_v_button.click()
+
+    time.sleep(1)
+
+    # TODO might require back button click
+
+def view_provider_tests(driver):
+    test_back_button(driver)
+
+    #TODO ideally create NEW TP to test
+    click_entry(driver,0)
+
+    buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
+    doc_button = buttons[0]
+    doc_button.click()
+    time.sleep(2)
+
+    #Get initial state
+    initial_rows = row_counter(driver)
+    print(initial_rows)
+
+    #Add doc
+    add_doc_button = driver.find_element_by_xpath('//span[contains(text(), "Add Document")]')
+    add_doc_button.click()
+    complete_doc_upload(driver)
+
+    #get final state
+    final_rows = row_counter(driver)
+    print(final_rows)
+    if final_rows == initial_rows + 1:
+        print("PASS - document successfully added")
+    else:
+        print("FAIL - document not added")
+
+
+    ## same for DRIVER ##
+    d_initial_rows = row_counter(driver,1)
+    print(d_initial_rows)
+    add_driver_button = driver.find_element_by_xpath('//span[contains(text(), "Add Driver")]')
+    add_driver_button.click()
+    #inputs = driver.find_elements_by_xpath('//input')
+
+    complete_driver_form(driver)
+
+    d_final_rows = row_counter(driver,1)
+    print(d_final_rows)
+    if d_final_rows == d_initial_rows + 1:
+        print("PASS - driver successfully added")
+    else:
+        print("FAIL - driver not added")
+
+    time.sleep(1)
+
+    ## for vehicles ##
+
+    vehicles_button = driver.find_element_by_xpath('//span[contains(text(), "Vehicles")]')
+    vehicles_button.click()
+    time.sleep(1)
+
+    v_initial_rows = row_counter(driver,1)
+    print(v_initial_rows)
+
+    add_vehicles_button = driver.find_element_by_xpath('//span[contains(text(), "Add Vehicle")]')
+    add_vehicles_button.click()
+    complete_vehicle_form(driver)
+
+    # TODO might require back button click
+
+    time.sleep(1)
+
+    v_final_rows = row_counter(driver,1)
+    print(v_final_rows)
+    if v_final_rows == d_initial_rows + 1:
+        print("PASS - driver successfully added")
+    else:
+        print("FAIL - driver not added")
+
+def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,attribute=None):
+    passed = True
+    sort_button = driver.find_element_by_xpath(sort_button_path)
+    sort_button.click()
+    time.sleep(3)
+    results = driver.find_elements_by_xpath(results_path)
+    prev = None
+    for r in results:
+        """
+        atts = driver.execute_script('var items = {}; for (index = 0; index < arguments[0].attributes.length; ++index) { items[arguments[0].attributes[index].name] = arguments[0].attributes[index].value }; return items;', r)
+        print(atts)
+        """
+        if text_test:
+            data = r.text
+        else:
+            data = r.get_attribute(attribute)
+        print(data)
+        if prev != None:
+            # watch tests for un tested non text attributes
+            if sort_forward:
+                if data < prev:
+                    passed = False
+            else:
+                if data > prev:
+                    passed = False
+        prev = data
+
+    if passed:
+        print('PASS - sort success')
+    else:
+        print('FAIL - sorting problem')
+
+def run_all_sort_tests(driver):
+    #by co name
+    sort_button_path = '//div[contains(text(),"Company name")]'
+    results_path = '//div[@data-field="TransportationProviderName"]/a'
+    sort_test(driver,sort_button_path,results_path,True)
+    sort_test(driver,sort_button_path,results_path,False)
+
+    """
+    #email sorting disabled 9/14
+    email_sort_path = '//div[contains(text(),"Dispatch email")]'
+    email_results_path = '//div[@data-field="EmailAddress"]'
+
+    sort_test(driver,email_sort_path,email_results_path,True)
+    sort_test(driver,email_sort_path,email_results_path,False)
+    """
+
+    #clear sort
+    clear_sort_path = '//div[contains(text(),"Clear to transport")]'
+    clear_results_path = '//div[@data-field="IsClearToTransport"]'
+    clear_attribute = 'data-value'
+    sort_test(driver,clear_sort_path,clear_results_path,True,False,clear_attribute)
+    sort_test(driver,clear_sort_path,clear_results_path,False,False,clear_attribute)
+
+    #active sort
+    active_sort_path = '//div[contains(text(),"Active")]'
+    active_results_path = '//div[@data-field="IsActive"]'
+    active_attribute = 'data-value'
+    sort_test(driver,active_sort_path,active_results_path,True,False,active_attribute)
+    sort_test(driver,active_sort_path,active_results_path,False,False,active_attribute)
+
+def get_target_num_entries(driver):
+    dropdown = driver.find_element_by_xpath('//div[@class="MuiSelect-root MuiSelect-select MuiTablePagination-select MuiSelect-selectMenu MuiInputBase-input"]')
+    return int(dropdown.text)
+
+def get_reported_start(driver):
+    page_readout = driver.find_element_by_xpath('//div[@class="MuiToolbar-root MuiToolbar-regular MuiTablePagination-toolbar MuiToolbar-gutters"]/p[2]').text
+    dash_i = page_readout.find('-')
+    return int(page_readout[0:dash_i])
+
+def get_reported_end(driver):
+    page_readout = driver.find_element_by_xpath('//div[@class="MuiToolbar-root MuiToolbar-regular MuiTablePagination-toolbar MuiToolbar-gutters"]/p[2]').text
+    dash_i = page_readout.find('-')
+    space_i = page_readout.find(" ")
+    return int(page_readout[dash_i+1:space_i])
+
+def evaluate_entries_per_page(driver):
+    target_num_entries = get_target_num_entries(driver)
+    reported_end = get_reported_end(driver)
+    reported_start = get_reported_start(driver)
+    reported_num_entries = reported_end-reported_start+1
+    actual_num_entries = row_counter(driver)
+    if target_num_entries == actual_num_entries:
+        print('PASS - requested entries matches actual entries - '+str(actual_num_entries))
+    else:
+        print('FAIL - requested entries '+str(target_num_entries)+' - actual '+str(actual_num_entries))
+    if reported_num_entries == target_num_entries:
+        print('PASS - readout shows correct number of rows - '+str(reported_num_entries))
+    else:
+        print('FAIL - requested entries '+str(target_num_entries)+' - readout shows '+str(reported_num_entries))
+
+def page_entries_test(driver):
+    dropdown_guide = [1,2,3,4,5,0]
+    for i in dropdown_guide:
+        dropdown = driver.find_element_by_xpath('//div[@class="MuiSelect-root MuiSelect-select MuiTablePagination-select MuiSelect-selectMenu MuiInputBase-input"]')
+        num_entries_dropdown_id = dropdown.get_attribute('id')
+        print(num_entries_dropdown_id)
+        #watch this, getting some odd behavior from big entry list loading
+        dropdown_handler(driver,num_entries_dropdown_id,i)
+        time.sleep(10)
+        evaluate_entries_per_page(driver)
+
+def page_change_test(driver,pages_to_test):
+    pages = pages_to_test
+    page = 0
+    while page < pages:
+        target_end = get_reported_end(driver) + get_target_num_entries(driver)
+        first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+
+        #get initial stat
+        next_button = driver.find_element_by_xpath('//button[@title="Next page"]')
+        next_button.click()
+        time.sleep(1.5)
+        #click
+        #check reaout as +rows per page
+        new_end = get_reported_end(driver)
+        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        if (new_end == target_end) and (first_entry != new_first_entry):
+            print('PASS - goes to next page')
+        else:
+            print('FAIL - page nav error')
+        #then do backwards
+        page += 1
+    while page > 0:
+        target_end = get_reported_end(driver) - get_target_num_entries(driver)
+        first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+
+        #get initial stat
+        next_button = driver.find_element_by_xpath('//button[@title="Previous page"]')
+        next_button.click()
+        time.sleep(4)
+        #click
+        #check reaout as +rows per page
+        new_end = get_reported_end(driver)
+        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        if (new_end == target_end) and (first_entry != new_first_entry):
+            print('PASS - goes to previous page')
+        else:
+            print('FAIL - page nav error')
+        #then do backwards
+        page -= 1
+
+def complete_create_tp_form(driver,company_name):
+    click_all_date_buttons(driver)
+    scroll_top(driver)
+    
+    first = get_random_name()
+    last = get_random_name()
+    email_end = '@'+co_name[0]+'tc.com'
+    email = last+email_end
+    address = str(random.randint(1,12000))+" "+get_random_name()+" st."
+    city_seed = get_random_name() + get_random_name()
+    city = city_seed + " city"
+    state_i = random.randint(0,49)
+    zipcode = get_random_number(5)
+    county = city_seed
+    area_code = get_random_number(3,True)
+    driver.find_element_by_xpath('//input[@name="TransportationProviderName"]').send_keys(co_name)
+    driver.find_element_by_xpath('//input[@name="EmailAddress"]').send_keys(email)
+    driver.find_element_by_xpath('//input[@name="MainContactFirstName"]').send_keys(first)
+    driver.find_element_by_xpath('//input[@name="MainContactLastName"]').send_keys(last)
+    driver.find_element_by_xpath('//input[@name="AddressLine1"]').send_keys(address)
+    #AddressLine2
+    driver.find_element_by_xpath('//input[@name="City"]').send_keys(city)
+    #State
+    dropdown_handler(driver,"mui-component-select-State",state_i)
+    driver.find_element_by_xpath('//input[@name="ZipCode"]').send_keys(zipcode)
+    driver.find_element_by_xpath('//input[@name="County"]').send_keys(county)
+    driver.find_element_by_xpath('//input[@name="MainPhone"]').send_keys(area_code+get_random_number(7))
+    #MainPhoneCountryCode
+    #MainPhoneExtension
+    driver.find_element_by_xpath('//input[@name="DispatchPhone"]').send_keys(area_code+get_random_number(7))
+    #DispatchPhoneCountryCode
+    #DispatchPhoneExtension
+    c_first = get_random_name()
+    c_last = get_random_name()
+    driver.find_element_by_xpath('//input[@name="BillingContactFirstName"]').send_keys(c_first)
+    driver.find_element_by_xpath('//input[@name="BillingContactLastName"]').send_keys(c_last)
+    driver.find_element_by_xpath('//input[@name="BillingEmailAddress"]').send_keys(c_last+email_end)
+    driver.find_element_by_xpath('//input[@name="BillingAddressLine1"]').send_keys(address)
+    #BillingAddressLine2
+    driver.find_element_by_xpath('//input[@name="BillingCity"]').send_keys(city)
+    #BillingState
+    dropdown_handler(driver,"mui-component-select-BillingState",state_i)
+    driver.find_element_by_xpath('//input[@name="BillingZipCode"]').send_keys(zipcode)
+    driver.find_element_by_xpath('//input[@name="AccountNumber"]').send_keys(get_random_number(8))
+    driver.find_element_by_xpath('//input[@name="BillingPhone"]').send_keys(area_code+get_random_number(7))
+    #BillingPhoneCountryCode
+    #BillingPhoneExtension
+    o_first = get_random_name()
+    o_last = get_random_name()
+    driver.find_element_by_xpath('//input[@name="OwnerFirstName"]').send_keys(o_first)
+    driver.find_element_by_xpath('//input[@name="OwnerLastName"]').send_keys(o_last)
+    driver.find_element_by_xpath('//input[@name="OwnerEmailAddress"]').send_keys(o_last+email_end)
+    driver.find_element_by_xpath('//input[@name="OwnerPhone"]').send_keys(area_code+get_random_number(7))
+    #OwnerPhoneCountryCode
+    #OwnerPhoneExtension
+    driver.find_element_by_xpath('//input[@name="EmployerIdentificationNumber"]').send_keys(get_random_number(9))
+    driver.find_element_by_xpath('//input[@name="LegalEntityBusinessName"]').send_keys(email_end[1:4]+" inc.")
+    #LegalEntityStateCode
+    dropdown_handler(driver,"mui-component-select-LegalEntityStateCode",random.randint(0,49))
+    driver.find_element_by_xpath('//input[@name="PhysicalAddressLine1"]').send_keys(address)
+    #PhysicalAddressLine2
+    driver.find_element_by_xpath('//input[@name="PhysicalCity"]').send_keys(city)
+    #PhysicalState
+    dropdown_handler(driver,"mui-component-select-PhysicalState",state_i)
+    driver.find_element_by_xpath('//input[@name="PhysicalZipCode"]').send_keys(zipcode)
+
+
+    #LegalEntityTypeID
+    dropdown_handler(driver,"mui-component-select-LegalEntityTypeID",random.randint(0,7))
+    #LegalEntityStatusID
+    dropdown_handler(driver,"mui-component-select-LegalEntityStatusID",1)
+
+    #TransportationProviderTypeID
+    dropdown_handler(driver,"mui-component-select-TransportationProviderTypeID",1)
+    #TransportationProviderTierID
+    dropdown_handler(driver,"mui-component-select-TransportationProviderTierID",1)
+
+
+    driver.find_element_by_xpath('//input[@name="NPINumber"]').send_keys(get_random_number(6))
+
+
+    driver.find_element_by_xpath('//input[@name="InsuranceCompanyName"]').send_keys(get_random_name()+'-'+get_random_name()+' insurance')
+    driver.find_element_by_xpath('//input[@name="InsurancePolicyNumber"]').send_keys(get_random_char(3) + get_random_number(6))
+
+    #InsuranceStrengthID
+    dropdown_handler(driver,"mui-component-select-InsuranceStrengthID",1)
+
+    driver.find_element_by_xpath('//input[@name="InsurancePerPerson"]').send_keys(str(random.randint(1,1000)*10000))
+    driver.find_element_by_xpath('//input[@name="InsurancePerAccident"]').send_keys(str(random.randint(1,1000)*10000))
+    driver.find_element_by_xpath('//input[@name="InsurancePerProperty"]').send_keys(str(random.randint(1,1000)*10000))
+
+    driver.find_element_by_xpath('//textarea[@rows="10"]').send_keys(city)
+
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+
+def test_create_tp(driver):
+    add_tp_button = driver.find_element_by_xpath('//span[contains(text(),"Add Provider")]')
+    add_tp_button.click()
+    co_name = get_random_name() + " transportation co."
+    complete_create_tp_form(driver,co_name)
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+    back_button.click()
+
+    time.sleep(2)
+    results = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')
+    if results[0].text == co_name:
+        print('PASS - Created new TP - '+results[0].text)
+    else:
+        print('FAIL - TP not created')
+
+def test_delete_tp(driver):
+    #check initial state
+    co_to_kill = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    no_button = driver.find_element_by_xpath('//span[contains(text(),"No")]')
+    no_button.click()
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    yes_button = driver.find_element_by_xpath('//span[contains(text(),"Yes")]')
+    yes_button.click()
+
+    time.sleep(1)
+    top_result = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+    if top_result != co_to_kill:
+        print('PASS - '+co_to_kill+' deleted')
+    else:
+        print('FAIL - '+ co_to_kill+ ' not deleted')
 
 login_tpp(driver)
-time.sleep(2)
+time.sleep(5)
 
+test_create_tp(driver)
+test_delete_tp(driver)
+
+
+#UNCOMMENT to run individual tests
+#FILTERS
+#run_clear_filter_test(driver)
+#run_all_filter_tests(driver)  
+# Need to create entries for [1,2,5] / [1,2,6] for testing  
+#run_single_filter_test(driver,[1,2,5])
+#run_single_filter_test(driver,[3,4])
+
+#SEARCHES
 should_partial = ['bobby','end','rob','be','transp']
 #search_test(driver,should_partial,NAME_SEARCH_KEY)
 should_full = ['Character Test Incorporated','Endwerpower Inc','Zeepickamazz Direct Corp.']
@@ -391,17 +916,22 @@ shouldnt = ["zzzz","qqqq","pppp"]
 # TODO add accumulator in test function to measure total passes v fails
 should_coverage = ["333","bos"]
 #search_test(driver,should_coverage,COVERAGE_SEARCH_KEY)
+should_full_coverage = ["San Francisco, Los Angeles, San Diego","Boston","84770"]
+#search_test(driver,should_full_coverage,COVERAGE_SEARCH_KEY)
+shouldnt_coverage = ["zzzz","qqqq","pppp"]
+#search_test(driver,shouldnt_coverage,COVERAGE_SEARCH_KEY,0)
 
-test_clear_search(driver,COVERAGE_SEARCH_KEY)
-test_clear_search(driver,NAME_SEARCH_KEY)
+#SEARCH CLEAR
+#test_clear_search(driver,COVERAGE_SEARCH_KEY)
+#test_clear_search(driver,NAME_SEARCH_KEY)
 
-#UNCOMMENT to run individual tests
-#run_clear_filter_test(driver)
-#run_all_filter_tests(driver)  
-# Need to create entries for [1,2,5] / [1,2,6] for testing  
-#run_single_filter_test(driver,[1,2,5])
-#run_single_filter_test(driver,[3,4])
+#TODO create new TP first, test that tp, delete that tp
+#view_provider_tests(driver)
 
+#run_all_sort_tests(driver)
+
+#page_entries_test(driver)
+#page_change_test(driver,3)
 
 time.sleep(3)
 

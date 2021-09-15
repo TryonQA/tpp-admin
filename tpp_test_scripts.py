@@ -762,7 +762,7 @@ def complete_create_tp_form(driver,company_name):
     
     first = get_random_name()
     last = get_random_name()
-    email_end = '@'+co_name[0]+'tc.com'
+    email_end = '@'+company_name[0]+'tc.com'
     email = last+email_end
     address = str(random.randint(1,12000))+" "+get_random_name()+" st."
     city_seed = get_random_name() + get_random_name()
@@ -771,7 +771,7 @@ def complete_create_tp_form(driver,company_name):
     zipcode = get_random_number(5)
     county = city_seed
     area_code = get_random_number(3,True)
-    driver.find_element_by_xpath('//input[@name="TransportationProviderName"]').send_keys(co_name)
+    driver.find_element_by_xpath('//input[@name="TransportationProviderName"]').send_keys(company_name)
     driver.find_element_by_xpath('//input[@name="EmailAddress"]').send_keys(email)
     driver.find_element_by_xpath('//input[@name="MainContactFirstName"]').send_keys(first)
     driver.find_element_by_xpath('//input[@name="MainContactLastName"]').send_keys(last)

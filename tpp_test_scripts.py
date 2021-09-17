@@ -674,6 +674,8 @@ def view_provider_tests(driver):
     else:
         print("FAIL - vehicle not added")
 
+    driver.refresh()
+
 def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,attribute=None):
     passed = True
     sort_button = driver.find_element_by_xpath(sort_button_path)
@@ -1081,58 +1083,53 @@ def test_edit_tp(driver):
 login_tpp(driver)
 time.sleep(5)
 
-
-
-
+#TP EDIT TESTS
 test_edit_tp_open_close(driver)
 test_edit_tp_invalid_field(driver)
 test_edit_tp(driver)
 
-
-
-
 #TP CREATION TESTS
-#test_create_tp_invalid_field(driver)
-#test_open_close_create_tp(driver)
-#test_create_tp_no_data(driver)
+test_create_tp_invalid_field(driver)
+test_open_close_create_tp(driver)
+test_create_tp_no_data(driver)
 test_create_tp(driver)
-#test_delete_tp(driver)
+test_delete_tp(driver)
 
 
 #UNCOMMENT to run individual tests
 #FILTERS
-#run_clear_filter_test(driver)
+run_clear_filter_test(driver)
+#running all filter tests is time consuming
 #run_all_filter_tests(driver)  
-# Need to create entries for [1,2,5] / [1,2,6] for testing  
-#run_single_filter_test(driver,[1,2,5])
-#run_single_filter_test(driver,[3,4])
+run_single_filter_test(driver,[1,2,5])
+run_single_filter_test(driver,[3,4])
 
 #SEARCHES
 should_partial = ['bobby','end','rob','be','transp']
-#search_test(driver,should_partial,NAME_SEARCH_KEY)
+search_test(driver,should_partial,NAME_SEARCH_KEY)
 should_full = ['cag transportation co.','ubrol transportation co.','achihn transportation co.']
-#search_test(driver,should_full,NAME_SEARCH_KEY,1)
+search_test(driver,should_full,NAME_SEARCH_KEY,1)
 shouldnt = ["zzzz","qqqq","pppp"]
-#search_test(driver,shouldnt,NAME_SEARCH_KEY,0)
+search_test(driver,shouldnt,NAME_SEARCH_KEY,0)
 # TODO add accumulator in test function to measure total passes v fails
 should_coverage = ["city","all of"]
-#search_test(driver,should_coverage,COVERAGE_SEARCH_KEY)
+search_test(driver,should_coverage,COVERAGE_SEARCH_KEY)
 should_full_coverage = ["ifrisenibb city","All of Orgeon State"]
-#search_test(driver,should_full_coverage,COVERAGE_SEARCH_KEY)
+search_test(driver,should_full_coverage,COVERAGE_SEARCH_KEY)
 shouldnt_coverage = ["zzzz","qqqq","pppp"]
-#search_test(driver,shouldnt_coverage,COVERAGE_SEARCH_KEY,0)
+search_test(driver,shouldnt_coverage,COVERAGE_SEARCH_KEY,0)
 
 #SEARCH CLEAR
-#test_clear_search(driver,COVERAGE_SEARCH_KEY)
-#test_clear_search(driver,NAME_SEARCH_KEY)
+test_clear_search(driver,COVERAGE_SEARCH_KEY)
+test_clear_search(driver,NAME_SEARCH_KEY)
 
 #TODO create new TP first, test that tp, delete that tp
-#view_provider_tests(driver)
+view_provider_tests(driver)
 
-#run_all_sort_tests(driver)
+run_all_sort_tests(driver)
 
-#page_entries_test(driver)
-#page_change_test(driver,3)
+page_entries_test(driver)
+page_change_test(driver,3)
 
 time.sleep(3)
 

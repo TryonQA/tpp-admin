@@ -1,14 +1,17 @@
-Must add a creds.txt file locally to folder to run - 
+MUST ADD a creds.txt file locally to folder to run - 
 text file should contain one line formatted:
 username,password
 
 --SELENIUM NOTES--
-REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingl
-Finished Filter checks
-Qs - switching logic on first four filters
+REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingly
+Qs: 
+-switching logic on first four filters
+-guardrails for dropdown handler
+-better readouts (label tests by test plan?)
 
-Filter tests done
-Running OK locally in IDE 9/7/21 -gb
+Running OK locally in IDE 9/17/21 -gb
+MAIN starts line 1083
+
 
 --TEST CAFE NOTES --
 CMD to run test:

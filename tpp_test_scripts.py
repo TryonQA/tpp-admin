@@ -1241,7 +1241,7 @@ test_delete_tp(driver)
 run_clear_filter_test(driver)
 #running all filter tests is time consuming
 #run_all_filter_tests(driver)  
-run_single_filter_test(driver,[1,2,5])
+run_single_filter_test(driver,[1,2,4])
 run_single_filter_test(driver,[3,4])
 
 #SEARCHES

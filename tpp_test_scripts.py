@@ -9,6 +9,10 @@ FILTER_TAGS = ["Clear to transport","Not clear to transport",\
     "Wheelchair v. available","Has drug testing","Has supplier diversity"]
 COVERAGE_SEARCH_KEY = "coverage_tp"
 NAME_SEARCH_KEY = "name_tp"
+DRIVER_SEARCH_KEY = "driver_tp"
+
+TP_KEY = 'tp_key'
+DRIVER_KEY = 'driver_key'
 
 creds = open('creds.txt')
 creds_data = creds.readline()
@@ -20,11 +24,16 @@ creds.close()
 dev_url = 'https://tpp-dev.americanlogistics.com/providers'
 qa_url = 'https://tpp-qa.americanlogistics.com/providers'
 
-driver = webdriver.Chrome(PATH)
-driver.implicitly_wait(4)
+active_url = dev_url
+
+
+def init_driver():
+    driver = webdriver.Chrome(PATH)
+    driver.implicitly_wait(4)
+    return driver
 
 def login_tpp(driver):
-    driver.get(dev_url)
+    driver.get(active_url)
     #time.sleep(2)
     button = driver.find_element_by_class_name('MuiButton-containedPrimary')
     button.click()
@@ -127,6 +136,7 @@ def get_current_company_data(driver):
 
 
 def get_all_company_data(driver):
+    time.sleep(2)
     co_entries_orig = get_company_entries(driver)
     num_entries = len(co_entries_orig)
     co_data = []
@@ -327,6 +337,9 @@ def search_element_by_key(driver,element_key):
         element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]')
     if element_key == COVERAGE_SEARCH_KEY:
         element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]')
+    if element_key == DRIVER_SEARCH_KEY:
+        element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]')
+    
     return element
 
 def clear_element_by_key(driver,element_key):
@@ -334,6 +347,10 @@ def clear_element_by_key(driver,element_key):
         clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]//ancestor::div[1]/div/button')
     if element_key == COVERAGE_SEARCH_KEY:
         clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]//ancestor::div[1]/div/button')
+    if element_key == DRIVER_SEARCH_KEY:
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]//ancestor::div[1]/div/button')
+
+    
     return clear_element
 
 def text_to_search(driver,search_text,element_key):
@@ -352,15 +369,22 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
         print(readout)
         text_to_search(driver,to_search,test_field_key)
         to_search_to_check = to_search.lower()
-        results = get_all_company_data(driver)
-        num_results = len(get_company_entries(driver))
+        if test_field_key == NAME_SEARCH_KEY or test_field_key == COVERAGE_SEARCH_KEY:
+            results = get_all_company_data(driver)
+            num_results = len(get_company_entries(driver))
+        elif test_field_key == DRIVER_SEARCH_KEY:
+            results = get_all_driver_names(driver)
+            num_results = len(results)
         passing_results = 0
-        for co in results:
-            name = co["name"]
-            print(name)
+        for res in results:
+            if test_field_key == NAME_SEARCH_KEY or test_field_key == COVERAGE_SEARCH_KEY:
+                name = res["name"]
+                print(name)
+            else:
+                print(res)
             if expected_results != 0:
                 if test_field_key == NAME_SEARCH_KEY:
-                    if to_search_to_check in name.lower() or to_search_to_check in co["owner_first"].lower() or to_search_to_check in co["owner_last"].lower():
+                    if to_search_to_check in name.lower() or to_search_to_check in res["owner_first"].lower() or to_search_to_check in res["owner_last"].lower():
                         if to_search_to_check in name.lower():
                             print("PASS - Company name")
                         else:
@@ -369,12 +393,18 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
                     else:
                         print("FAIL")
                 elif test_field_key == COVERAGE_SEARCH_KEY:
-                    print(co["coverage_area"].lower())
-                    if to_search_to_check in co["coverage_area"].lower():
+                    print(res["coverage_area"].lower())
+                    if to_search_to_check in res["coverage_area"].lower():
                         print("PASS")
                         passing_results += 1
                     else:
                         print("FAIL")
+                elif test_field_key == DRIVER_SEARCH_KEY:
+                    if to_search_to_check in res.lower():
+                        print('PASS driver search')
+                        passing_results += 1
+                    else:
+                        print('FAIL driver search')
             else:
                 print("Above errant result detected")
                 passing_results-=1
@@ -396,6 +426,9 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
             else:
                 print("PASS - No search results confirmed.")
         driver.refresh()
+        if test_field_key == DRIVER_SEARCH_KEY:
+            go_to_drivers(driver)
+            time.sleep(1)
 
 def test_clear_search(driver,test_field_key):
     text_to_search(driver,"Test Clear Button",test_field_key)
@@ -415,24 +448,32 @@ def click_entry(driver,index):
     company = co_entries[index] 
     company.click()
 
-def test_back_button(driver):
+def click_driver(driver,index):
+    drivers = driver.find_elements_by_xpath('//div[@role="row"]/div/a')
+    this_driver = drivers[index]
+    this_driver.click()
+
+def test_back_button(driver,page_key):
     #this can be made more general
     start_url = driver.current_url
     #print(start_url)
     #Replace with nav to?
-    click_entry(driver,0)
-    #Replace with nav out?
-    buttons2 = driver.find_elements_by_xpath('//a')
-    for b in buttons2:
-        if b.text == "Back to Transportation Providers":
-            b.click()
-            break
+    if page_key == TP_KEY:
+        click_entry(driver,0)
+        back_string = 'Transportation Providers'
+    elif page_key == DRIVER_KEY:
+        click_driver(driver,0)
+        back_string = 'Drivers'
+    mid_url = driver.current_url
+    
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "'+back_string+'")]')
+    back_button.click()
     end_url = driver.current_url
     #print(end_url)
-    if start_url == end_url:
-        print('Back to TP button - PASS')
+    if start_url == end_url and mid_url != start_url:
+        print('Back to '+back_string+' button - PASS')
     else:
-        print('Back to TP button - FAIL')
+        print('Back to '+back_string+' button - FAIL')
 
 def row_counter(driver,render_field_index = 0):
     render_fields = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-renderingZone"]')
@@ -572,6 +613,7 @@ def complete_vehicle_form(driver):
     time.sleep(2)
 
 def get_document_upload_states(driver):
+    driver.implicitly_wait(0.5)
     states = []
     doc_entries = driver.find_elements_by_xpath('//div[@data-field="DocumentTypeName"]')
     doc_entries = doc_entries[1:]
@@ -583,20 +625,10 @@ def get_document_upload_states(driver):
         else:
             states.append(d.find_element_by_xpath('.//div').text)
     print('.')
+    driver.implicitly_wait(4)
     return states
 
-def view_provider_tests(driver):
-    test_back_button(driver)
-
-    #TODO ideally create NEW TP to test
-    click_entry(driver,0)
-
-    buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
-    doc_button = buttons[0]
-    doc_button.click()
-    time.sleep(2)
-
-    #evaluate doc states
+def test_doc_upload(driver):
     initial_docs = get_document_upload_states(driver)
     #determine doc to add
     check_index = 0
@@ -610,27 +642,27 @@ def view_provider_tests(driver):
     add_doc_button.click()
     complete_doc_upload(driver,initial_docs[check_index])
 
-    #evaluate do state
+    #evaluate doc state
     final_docs = get_document_upload_states(driver)
-    """
-    #Get initial state
-    initial_rows = row_counter(driver)
-    print(initial_rows)
 
-    #Add doc
-    add_doc_button = driver.find_element_by_xpath('//span[contains(text(), "Add Document")]')
-    add_doc_button.click()
-    complete_doc_upload(driver)
-
-    #get final state
-    final_rows = row_counter(driver)
-    print(final_rows)
-    """
     if final_docs[check_index] == None:
         print("PASS - document successfully added")
     else:
         print("FAIL - document not added")
 
+
+def view_provider_tests(driver):
+    test_back_button(driver,TP_KEY)
+
+    #TODO ideally create NEW TP to test
+    click_entry(driver,0)
+
+    buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
+    doc_button = buttons[0]
+    doc_button.click()
+    time.sleep(2)
+
+    test_doc_upload(driver)
 
     ## same for DRIVER ##
     d_initial_rows = row_counter(driver,1)
@@ -682,6 +714,7 @@ def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,a
     sort_button.click()
     time.sleep(3)
     results = driver.find_elements_by_xpath(results_path)
+    results = results[1:]
     prev = None
     for r in results:
         """
@@ -697,9 +730,11 @@ def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,a
             # watch tests for un tested non text attributes
             if sort_forward:
                 if data < prev:
+                    print(data + " < " + prev)
                     passed = False
             else:
                 if data > prev:
+                    print(data + " > " + prev)
                     passed = False
         prev = data
 
@@ -709,34 +744,21 @@ def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,a
         print('FAIL - sorting problem')
 
 def run_all_sort_tests(driver):
-    #by co name
-    sort_button_path = '//div[contains(text(),"Company name")]'
-    results_path = '//div[@data-field="TransportationProviderName"]/a'
-    sort_test(driver,sort_button_path,results_path,True)
-    sort_test(driver,sort_button_path,results_path,False)
+    time.sleep(2)
+    need_attribute_list = ["IsClearToTransport","IsActive"]
+    attribute = 'data-value'
+    sort_tuple = get_sort_data(driver)
+    print(sort_tuple)
 
-    """
-    #email sorting disabled 9/14
-    email_sort_path = '//div[contains(text(),"Dispatch email")]'
-    email_results_path = '//div[@data-field="EmailAddress"]'
-
-    sort_test(driver,email_sort_path,email_results_path,True)
-    sort_test(driver,email_sort_path,email_results_path,False)
-    """
-
-    #clear sort
-    clear_sort_path = '//div[contains(text(),"Clear to transport")]'
-    clear_results_path = '//div[@data-field="IsClearToTransport"]'
-    clear_attribute = 'data-value'
-    sort_test(driver,clear_sort_path,clear_results_path,True,False,clear_attribute)
-    sort_test(driver,clear_sort_path,clear_results_path,False,False,clear_attribute)
-
-    #active sort
-    active_sort_path = '//div[contains(text(),"Active")]'
-    active_results_path = '//div[@data-field="IsActive"]'
-    active_attribute = 'data-value'
-    sort_test(driver,active_sort_path,active_results_path,True,False,active_attribute)
-    sort_test(driver,active_sort_path,active_results_path,False,False,active_attribute)
+    for t in sort_tuple:
+        sort_button_path = '//div[contains(text(),"'+t[0]+'")]'
+        results_path = '//div[@data-field="'+t[1]+'"]'
+        if t[1] in need_attribute_list:
+            sort_test(driver,sort_button_path,results_path,True,False,attribute)
+            sort_test(driver,sort_button_path,results_path,False,False,attribute)
+        else:    
+            sort_test(driver,sort_button_path,results_path,True)
+            sort_test(driver,sort_button_path,results_path,False)
 
 def get_target_num_entries(driver):
     dropdown = driver.find_element_by_xpath('//div[@class="MuiSelect-root MuiSelect-select MuiTablePagination-select MuiSelect-selectMenu MuiInputBase-input"]')
@@ -782,9 +804,11 @@ def page_entries_test(driver):
 def page_change_test(driver,pages_to_test):
     pages = pages_to_test
     page = 0
+    headers = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-colCell MuiDataGrid-colCellSortable"]')
+    data_field = headers[0].get_attribute('data-field')
     while page < pages:
         target_end = get_reported_end(driver) + get_target_num_entries(driver)
-        first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        first_entry = driver.find_elements_by_xpath('//div[@data-field="'+data_field+'"]/a')[0].text
 
         #get initial stat
         next_button = driver.find_element_by_xpath('//button[@title="Next page"]')
@@ -793,7 +817,7 @@ def page_change_test(driver,pages_to_test):
         #click
         #check reaout as +rows per page
         new_end = get_reported_end(driver)
-        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="'+data_field+'"]/a')[0].text
         if (new_end == target_end) and (first_entry != new_first_entry):
             print('PASS - goes to next page')
         else:
@@ -802,7 +826,7 @@ def page_change_test(driver,pages_to_test):
         page += 1
     while page > 0:
         target_end = get_reported_end(driver) - get_target_num_entries(driver)
-        first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        first_entry = driver.find_elements_by_xpath('//div[@data-field="'+data_field+'"]/a')[0].text
 
         #get initial stat
         next_button = driver.find_element_by_xpath('//button[@title="Previous page"]')
@@ -811,7 +835,7 @@ def page_change_test(driver,pages_to_test):
         #click
         #check reaout as +rows per page
         new_end = get_reported_end(driver)
-        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
+        new_first_entry = driver.find_elements_by_xpath('//div[@data-field="'+data_field+'"]/a')[0].text
         if (new_end == target_end) and (first_entry != new_first_entry):
             print('PASS - goes to previous page')
         else:
@@ -1061,7 +1085,7 @@ def test_edit_tp(driver):
     field = driver.find_element_by_xpath('//input[@name="OwnerFirstName"]')
     field.send_keys(Keys.CONTROL + "a")
     field.send_keys(Keys.DELETE)
-    field.send_keys(get_random_char(5))
+    field.send_keys(new_name)
     save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
     save_button.click()
     time.sleep(2)
@@ -1080,6 +1104,122 @@ def test_edit_tp(driver):
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
     back_button.click()
 
+def get_all_driver_names(driver):
+    time.sleep(1)
+    all_rows = driver.find_elements_by_xpath('//div[@role="row"]')
+    all_rows = all_rows[1:]
+    #print(len(all_rows))
+    results = []
+    for r in all_rows:
+        last = r.find_element_by_xpath('.//a')
+        first = r.find_element_by_xpath('.//div[@data-field="DriverFirstName"]')
+        full = first.text + " " + last.text
+        #print(full)
+        results.append(full)
+    return results
+
+def go_to_drivers(driver):
+    driver_button = driver.find_element_by_xpath('//a[contains(text(),"Drivers")]')
+    driver_button.click()
+
+def view_driver_tests(driver):
+    test_back_button(driver,DRIVER_KEY)
+
+    click_driver(driver,0)
+    time.sleep(1)
+
+    buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
+    doc_button = buttons[0]
+    doc_button.click()
+    time.sleep(2)
+
+    test_doc_upload(driver)
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button.click()
+
+def edit_driver_tests(driver):
+    click_driver(driver,0)
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
+    edit_button.click()
+
+    new_name = get_random_name()
+    field = driver.find_element_by_xpath('//input[@name="LastName"]')
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys(new_name)
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(3)
+    still_create = driver.find_elements_by_xpath('//h6')
+    if len(still_create) > 0:
+        print('FAIL - Driver edit save errors')
+        close_create(driver)
+    else:
+        final_name = driver.find_element_by_xpath('//div[contains(text(), "Last name")]//ancestor::div[1]/div[2]').text
+        #print(final_name)
+        if final_name == new_name:
+            print('PASS - Successful Driver edit')
+        else:
+            print('FAIL - Driver not edited')
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button.click()
+
+def edit_driver_tests_invalid(driver):
+    click_driver(driver,0)
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
+    edit_button.click()
+
+    email_field = driver.find_element_by_xpath('//input[@name="Email"]')
+    email_field.send_keys(Keys.CONTROL + "a")
+    email_field.send_keys(Keys.DELETE)
+    email_field.send_keys(get_random_char(5))
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+    confirm_errors_message(driver)
+    close_create(driver)
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button.click()
+
+def test_delete_driver(driver):
+    to_kill = driver.find_elements_by_xpath('//div[@data-field="DriverLastName"]/a')[0].text
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    no_button = driver.find_element_by_xpath('//span[contains(text(),"No")]')
+    no_button.click()
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    yes_button = driver.find_element_by_xpath('//span[contains(text(),"Yes")]')
+    yes_button.click()
+
+    time.sleep(1)
+    top_result = driver.find_elements_by_xpath('//div[@data-field="DriverLastName"]/a')[0].text
+    if top_result != to_kill:
+        print('PASS - '+to_kill+' deleted')
+    else:
+        print('FAIL - '+ to_kill+ ' not deleted')
+    
+def get_sort_data(driver):
+    tags = []
+    headers = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-colCell MuiDataGrid-colCellSortable"]')
+    for h in headers:
+        tag = h.text
+        data_field = h.get_attribute('data-field')
+        tup = (tag,data_field)
+        if tag != '':
+            tags.append(tup)
+    return tags
+
+"""
+driver = init_driver()
 login_tpp(driver)
 time.sleep(5)
 
@@ -1123,7 +1263,7 @@ search_test(driver,shouldnt_coverage,COVERAGE_SEARCH_KEY,0)
 test_clear_search(driver,COVERAGE_SEARCH_KEY)
 test_clear_search(driver,NAME_SEARCH_KEY)
 
-#TODO create new TP first, test that tp, delete that tp
+
 view_provider_tests(driver)
 
 run_all_sort_tests(driver)
@@ -1137,3 +1277,52 @@ driver.close()
 
 
 driver.quit()
+"""
+
+"""
+driver = init_driver()
+login_tpp(driver)
+time.sleep(1)
+
+#DRIVER CLICK
+
+go_to_drivers(driver)
+
+time.sleep(3)
+
+
+
+#DRIVER TESTS
+
+view_driver_tests(driver)
+edit_driver_tests(driver)
+edit_driver_tests_invalid(driver)
+#test_delete_driver(driver)
+"""
+
+#DRIVER SEARCHES
+"""
+test_clear_search(driver,DRIVER_SEARCH_KEY)
+
+driver_should = ['greg','bell','john','k r']
+search_test(driver,driver_should,DRIVER_SEARCH_KEY)
+driver_should_full = ['inete chub','amber potts','chris sheppard']
+search_test(driver,driver_should_full,DRIVER_SEARCH_KEY,1)
+shouldnt = ["zzzz","qqqq","pppp"]
+search_test(driver,shouldnt,DRIVER_SEARCH_KEY,0)
+"""
+
+#NAV TESTS
+"""
+run_all_sort_tests(driver)
+page_entries_test(driver)
+page_change_test(driver,3)
+"""
+
+"""
+time.sleep(3)
+
+driver.close()
+
+driver.quit()
+"""

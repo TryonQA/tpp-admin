@@ -5,12 +5,12 @@ username,password
 --SELENIUM NOTES--
 REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingly
 Qs: 
--switching logic on first four filters
--guardrails for dropdown handler
+-switching logic on first two filters
+-guardrails for dropdown_handler
 -better readouts (label tests by test plan?)
 
-Running OK locally in IDE 9/17/21 -gb
-MAIN starts line 1083
+drivers_test and providers_test Running OK locally 9/20/21 -gb
+adapted to multi-file 
 
 
 --TEST CAFE NOTES --

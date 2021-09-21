@@ -2,6 +2,8 @@ MUST ADD a creds.txt file locally to folder to run -
 text file should contain one line formatted:
 username,password
 
+To change environment being tested adjust active_url variable in tpp_test_scripts
+
 --SELENIUM NOTES--
 REQUIRES locally installed Chrome driver and adjustment of PATH variable accordingly
 Qs: 

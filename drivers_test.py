@@ -1,21 +1,6 @@
 import tpp_test_scripts as t
 import time
 
-PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
-## ADJUST ABOVE BASED ON LOCAL INSTALL
-
-creds = open('creds.txt')
-creds_data = creds.readline()
-comma = creds_data.find(",")
-user = creds_data[:comma]
-password = creds_data[comma+1:]
-creds.close()
-
-dev_url = 'https://tpp-dev.americanlogistics.com/providers'
-qa_url = 'https://tpp-qa.americanlogistics.com/providers'
-
-active_url = dev_url
-
 driver = t.init_driver()
 
 t.login_tpp(driver)

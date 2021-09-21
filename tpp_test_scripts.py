@@ -10,9 +10,11 @@ FILTER_TAGS = ["Clear to transport","Not clear to transport",\
 COVERAGE_SEARCH_KEY = "coverage_tp"
 NAME_SEARCH_KEY = "name_tp"
 DRIVER_SEARCH_KEY = "driver_tp"
+VEHICLE_SEARCH_KEY = 'vehicle_tp'
 
 TP_KEY = 'tp_key'
 DRIVER_KEY = 'driver_key'
+VEHICLE_KEY = 'vehicle_key'
 
 creds = open('creds.txt')
 creds_data = creds.readline()
@@ -23,8 +25,8 @@ creds.close()
 
 dev_url = 'https://tpp-dev.americanlogistics.com/providers'
 qa_url = 'https://tpp-qa.americanlogistics.com/providers'
-
-active_url = dev_url
+### ADJUST HERE to change environment being tested ###
+active_url = qa_url
 
 
 def init_driver():
@@ -81,6 +83,7 @@ def get_company_entries(driver):
     companies = driver.find_elements_by_xpath('//a[@class="MuiTypography-root MuiLink-root MuiLink-underlineHover MuiTypography-colorTextPrimary"]')
     return companies
 
+
 def filter_clicker(driver,filter_buttons_list,close=True):
     #filter buttons indexed 0-6
     open_filters_menu(driver)
@@ -97,6 +100,46 @@ def filter_reset(driver,open=True,close=True):
     clear_button.click()
     if close:
         close_filters_menu(driver)
+
+def get_all_vehicle_data(driver):
+    time.sleep(2)
+    co_entries_orig = get_company_entries(driver)
+    num_entries = len(co_entries_orig)
+    v_data = []
+    i = 0
+    # get co data
+    while i < num_entries:
+        co_entries = get_company_entries(driver)
+        num_entries = len(co_entries)
+        if i < len(co_entries):
+            company = co_entries[i] 
+            company.click()
+            time.sleep(2)
+            this_v_data = get_current_vehicle_data(driver)
+            v_data.append(this_v_data)
+            i+=1
+            back_to_vehicles(driver)
+            time.sleep(1)
+    return v_data
+
+def get_current_vehicle_data(driver):
+    datas = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"]/div/div/div/div')
+    data_text = []
+    #test = 0
+    for pt in datas:
+        #print(str(test)+" - "+pt.text)
+        data_text.append(pt.text)
+        #test+=1
+    this_v_data = {
+        "make":data_text[1],
+        "model":data_text[3],
+        "year":data_text[5],
+        "vin":data_text[15],
+        "license":data_text[11],
+        "state":data_text[13]
+    }
+    return this_v_data
+
 
 def get_current_company_data(driver):
     title_element = driver.find_element_by_xpath('//span[@class="MuiTypography-root MuiCardHeader-title MuiTypography-h5 MuiTypography-displayBlock"]/div/div')
@@ -339,7 +382,9 @@ def search_element_by_key(driver,element_key):
         element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]')
     if element_key == DRIVER_SEARCH_KEY:
         element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]')
-    
+    if element_key == VEHICLE_SEARCH_KEY:
+        element = driver.find_element_by_xpath('//input[@placeholder="Search for a Vehicle"]')
+
     return element
 
 def clear_element_by_key(driver,element_key):
@@ -349,7 +394,8 @@ def clear_element_by_key(driver,element_key):
         clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]//ancestor::div[1]/div/button')
     if element_key == DRIVER_SEARCH_KEY:
         clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]//ancestor::div[1]/div/button')
-
+    if element_key == VEHICLE_SEARCH_KEY:
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for a Vehicle"]//ancestor::div[1]/div/button')
     
     return clear_element
 
@@ -375,6 +421,10 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
         elif test_field_key == DRIVER_SEARCH_KEY:
             results = get_all_driver_names(driver)
             num_results = len(results)
+        elif test_field_key == VEHICLE_SEARCH_KEY:
+            results = get_all_vehicle_data(driver)
+            num_results = len(results)
+
         passing_results = 0
         for res in results:
             if test_field_key == NAME_SEARCH_KEY or test_field_key == COVERAGE_SEARCH_KEY:
@@ -391,20 +441,38 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
                             print("PASS - Owner name")
                         passing_results += 1
                     else:
-                        print("FAIL")
+                        print("FAIL company search")
                 elif test_field_key == COVERAGE_SEARCH_KEY:
                     print(res["coverage_area"].lower())
                     if to_search_to_check in res["coverage_area"].lower():
                         print("PASS")
                         passing_results += 1
                     else:
-                        print("FAIL")
+                        print("FAIL coverage area search")
                 elif test_field_key == DRIVER_SEARCH_KEY:
                     if to_search_to_check in res.lower():
                         print('PASS driver search')
                         passing_results += 1
                     else:
                         print('FAIL driver search')
+                elif test_field_key == VEHICLE_SEARCH_KEY:
+                    res_to_text = (res["make"]+res["model"]+res["year"]+res["vin"]+res["license"]+res["state"]).lower()
+                    if to_search_to_check in res_to_text:
+                        if to_search_to_check in res["make"].lower():
+                            print('PASS vehicle search MAKE')
+                        if to_search_to_check in res["model"].lower():
+                            print('PASS vehicle search MODEL')
+                        if to_search_to_check in res["year"].lower():
+                            print('PASS vehicle search YEAR')
+                        if to_search_to_check in res["vin"].lower():
+                            print('PASS vehicle search VIN NUM.')
+                        if to_search_to_check in res["license"].lower():
+                            print('PASS vehicle search LIC. NUM.')
+                        if to_search_to_check in res["state"].lower():
+                            print('PASS vehicle search STATE')
+                        passing_results += 1
+                    else:
+                        print("FAIL vehicle search")
             else:
                 print("Above errant result detected")
                 passing_results-=1
@@ -428,6 +496,9 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
         driver.refresh()
         if test_field_key == DRIVER_SEARCH_KEY:
             go_to_drivers(driver)
+            time.sleep(1)
+        if test_field_key == VEHICLE_SEARCH_KEY:
+            go_to_vehicles(driver)
             time.sleep(1)
 
 def test_clear_search(driver,test_field_key):
@@ -453,6 +524,11 @@ def click_driver(driver,index):
     this_driver = drivers[index]
     this_driver.click()
 
+def click_vehicle(driver,index):
+    vehicles = driver.find_elements_by_xpath('//div[@role="row"]/div/a')
+    this_v = vehicles[index]
+    this_v.click()
+
 def test_back_button(driver,page_key):
     #this can be made more general
     start_url = driver.current_url
@@ -464,6 +540,9 @@ def test_back_button(driver,page_key):
     elif page_key == DRIVER_KEY:
         click_driver(driver,0)
         back_string = 'Drivers'
+    elif page_key == VEHICLE_KEY:
+        click_driver(driver,0)
+        back_string = "Vehicles"
     mid_url = driver.current_url
     
     back_button = driver.find_element_by_xpath('//a[contains(text(), "'+back_string+'")]')
@@ -587,6 +666,10 @@ def complete_driver_form(driver):
     back_button.click()
 
     time.sleep(2)
+
+def back_to_vehicles(driver):
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Vehicles")]')
+    back_button.click()
 
 def complete_vehicle_form(driver):
     click_all_date_buttons(driver)
@@ -1122,6 +1205,10 @@ def go_to_drivers(driver):
     driver_button = driver.find_element_by_xpath('//a[contains(text(),"Drivers")]')
     driver_button.click()
 
+def go_to_vehicles(driver):
+    v_button = driver.find_element_by_xpath('//a[contains(text(),"Vehicles")]')
+    v_button.click()
+
 def view_driver_tests(driver):
     test_back_button(driver,DRIVER_KEY)
 
@@ -1137,6 +1224,21 @@ def view_driver_tests(driver):
 
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
     back_button.click()
+
+def view_vehicle_tests(driver):
+    test_back_button(driver,VEHICLE_KEY)
+    click_vehicle(driver,0)
+
+    time.sleep(1)
+
+    buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
+    doc_button = buttons[0]
+    doc_button.click()
+    time.sleep(2)
+
+    test_doc_upload(driver)
+
+    back_to_vehicles(driver)
 
 def edit_driver_tests(driver):
     click_driver(driver,0)
@@ -1219,10 +1321,28 @@ def get_sort_data(driver):
     return tags
 
 """
+
 driver = init_driver()
 login_tpp(driver)
-time.sleep(5)
+time.sleep(2)
 
+#VEHICLES CLICK
+go_to_vehicles(driver)
+time.sleep(3)
+
+#TODO - mimic for veh
+#t.edit_driver_tests(driver)
+#t.edit_driver_tests_invalid(driver)
+#t.test_delete_driver(driver)
+
+
+click_entry(driver,0)
+time.sleep(2)
+edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
+edit_button.click()
+time.sleep(0.5)
+"""
+"""
 #TP EDIT TESTS
 test_edit_tp_open_close(driver)
 test_edit_tp_invalid_field(driver)
@@ -1319,10 +1439,13 @@ page_entries_test(driver)
 page_change_test(driver,3)
 """
 
+
+
 """
 time.sleep(3)
 
 driver.close()
 
 driver.quit()
+""
 """

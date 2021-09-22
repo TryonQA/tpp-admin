@@ -112,6 +112,7 @@ def get_all_vehicle_data(driver):
         co_entries = get_company_entries(driver)
         num_entries = len(co_entries)
         if i < len(co_entries):
+            print("checking vehicle: " + str(i+1) + " / " + str(num_entries))
             company = co_entries[i] 
             company.click()
             time.sleep(2)
@@ -543,10 +544,12 @@ def test_back_button(driver,page_key):
     elif page_key == VEHICLE_KEY:
         click_driver(driver,0)
         back_string = "Vehicles"
+    time.sleep(0.5)
     mid_url = driver.current_url
     
     back_button = driver.find_element_by_xpath('//a[contains(text(), "'+back_string+'")]')
     back_button.click()
+    time.sleep(0.5)
     end_url = driver.current_url
     #print(end_url)
     if start_url == end_url and mid_url != start_url:
@@ -1269,6 +1272,35 @@ def edit_driver_tests(driver):
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
     back_button.click()
 
+def edit_vehicle_tests(driver):
+    click_vehicle(driver,0)
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
+    edit_button.click()
+
+    new_plate = get_random_char(3)+get_random_number(3)
+    field = driver.find_element_by_xpath('//input[@name="LicensePlate"]')
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys(new_plate)
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(3)
+    still_create = driver.find_elements_by_xpath('//h6')
+    if len(still_create) > 0:
+        print('FAIL - Driver edit save errors')
+        close_create(driver)
+    else:
+        final_name = driver.find_element_by_xpath('//div[contains(text(), "License plate")]//ancestor::div[1]/div[2]').text
+        #print(final_name)
+        if final_name == new_plate:
+            print('PASS - Successful Driver edit')
+        else:
+            print('FAIL - Driver not edited')
+
+    back_to_vehicles(driver)
+
+
 def edit_driver_tests_invalid(driver):
     click_driver(driver,0)
     time.sleep(1)
@@ -1286,6 +1318,23 @@ def edit_driver_tests_invalid(driver):
 
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
     back_button.click()
+
+def edit_vehicle_tests_invalid(driver):
+    click_vehicle(driver,0)
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
+    edit_button.click()
+
+    field = driver.find_element_by_xpath('//input[@name="LicensePlate"]')
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    save_button = driver.find_element_by_xpath('//span[contains(text(),"Save")]')
+    save_button.click()
+    confirm_errors_message(driver)
+    close_create(driver)
+
+    back_to_vehicles(driver)
+
 
 def test_delete_driver(driver):
     to_kill = driver.find_elements_by_xpath('//div[@data-field="DriverLastName"]/a')[0].text
@@ -1308,6 +1357,36 @@ def test_delete_driver(driver):
         print('PASS - '+to_kill+' deleted')
     else:
         print('FAIL - '+ to_kill+ ' not deleted')
+
+def test_delete_vehicle(driver):
+    
+    make = driver.find_elements_by_xpath('//div[@data-field="VehicleMake"]/a')[0].text
+    model = driver.find_elements_by_xpath('//div[@data-field="VehicleModel"]')[0+1].text
+    year = driver.find_elements_by_xpath('//div[@data-field="VehicleYear"]')[0+1].text
+    to_kill = make+model+year
+
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    no_button = driver.find_element_by_xpath('//span[contains(text(),"No")]')
+    no_button.click()
+
+    delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
+    delete_buttons[0].click()
+
+    yes_button = driver.find_element_by_xpath('//span[contains(text(),"Yes")]')
+    yes_button.click()
+
+    time.sleep(1)
+    make2 = driver.find_elements_by_xpath('//div[@data-field="VehicleMake"]/a')[0].text
+    model2 = driver.find_elements_by_xpath('//div[@data-field="VehicleModel"]')[0+1].text
+    year2 = driver.find_elements_by_xpath('//div[@data-field="VehicleYear"]')[0+1].text
+    top_result = make2+model2+year2
+    if top_result != to_kill:
+        print('PASS - '+to_kill+' deleted')
+    else:
+        print('FAIL - '+ to_kill+ ' not deleted')
     
 def get_sort_data(driver):
     tags = []
@@ -1319,6 +1398,7 @@ def get_sort_data(driver):
         if tag != '':
             tags.append(tup)
     return tags
+
 
 """
 
@@ -1335,6 +1415,9 @@ time.sleep(3)
 #t.edit_driver_tests_invalid(driver)
 #t.test_delete_driver(driver)
 
+edit_vehicle_tests(driver)
+edit_vehicle_tests_invalid(driver)
+test_delete_vehicle(driver)
 
 click_entry(driver,0)
 time.sleep(2)
@@ -1342,6 +1425,7 @@ edit_button = driver.find_element_by_xpath('//span[contains(text(),"Edit")]')
 edit_button.click()
 time.sleep(0.5)
 """
+
 """
 #TP EDIT TESTS
 test_edit_tp_open_close(driver)

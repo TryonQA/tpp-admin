@@ -5,6 +5,7 @@ driver = t.init_driver()
 
 t.login_tpp(driver)
 
+t.create_vehicles(driver,2)
 #VEHICLES CLICK
 t.go_to_vehicles(driver)
 time.sleep(3)
@@ -14,6 +15,9 @@ t.view_vehicle_tests(driver)
 t.edit_vehicle_tests(driver)
 t.edit_vehicle_tests_invalid(driver)
 #t.test_delete_vehicle(driver)
+
+t.ctt_test(driver,t.VEHICLE_KEY)
+t.go_to_vehicles(driver)
 
 #SEARCH TESTS
 t.test_clear_search(driver,t.VEHICLE_SEARCH_KEY)

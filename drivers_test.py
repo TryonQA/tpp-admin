@@ -15,6 +15,9 @@ t.edit_driver_tests(driver)
 t.edit_driver_tests_invalid(driver)
 t.test_delete_driver(driver)
 
+t.ctt_test(driver,t.DRIVER_KEY)
+t.go_to_drivers(driver)
+
 #DRIVER SEARCHES
 t.test_clear_search(driver,t.DRIVER_SEARCH_KEY)
 

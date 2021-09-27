@@ -5,7 +5,6 @@ driver = t.init_driver()
 t.login_tpp(driver)
 time.sleep(5)
 
-###UNCOMMENT test to run individual tests###
 
 #TP EDIT TESTS
 t.test_edit_tp_open_close(driver)
@@ -19,12 +18,15 @@ t.test_create_tp_no_data(driver)
 t.test_create_tp(driver)
 #t.test_delete_tp(driver)
 
+
+
 #FILTERS
 t.run_clear_filter_test(driver)
 #running all filter tests is time consuming
-t.run_all_filter_tests(driver)  
-#t.run_single_filter_test(driver,[1,2,4])
-#t.run_single_filter_test(driver,[3,4])
+#t.run_all_filter_tests(driver)  
+t.run_single_filter_test(driver,[1,2,4])
+t.run_single_filter_test(driver,[3,4])
+
 
 #SEARCHES
 should_partial = ['bobby','end','rob','be','transp']
@@ -48,6 +50,7 @@ t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 
 #PROVIDER TESTS
 t.view_provider_tests(driver)
+t.ctt_test(driver,t.TP_KEY)
 
 #NAV TESTS
 t.run_all_sort_tests(driver)

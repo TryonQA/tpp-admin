@@ -4,8 +4,8 @@ import time
 driver = t.init_driver()
 
 t.login_tpp(driver)
-
-t.create_vehicles(driver,2)
+time.sleep(2)
+t.create_vehicles(driver,1)
 #VEHICLES CLICK
 t.go_to_vehicles(driver)
 time.sleep(3)

@@ -16,7 +16,7 @@ t.test_create_tp_invalid_field(driver)
 t.test_open_close_create_tp(driver)
 t.test_create_tp_no_data(driver)
 t.test_create_tp(driver)
-#t.test_delete_tp(driver)
+
 
 
 
@@ -51,6 +51,9 @@ t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 #PROVIDER TESTS
 t.view_provider_tests(driver)
 t.ctt_test(driver,t.TP_KEY)
+
+#DELETE TEST
+t.test_delete_tp(driver)
 
 #NAV TESTS
 t.run_all_sort_tests(driver)

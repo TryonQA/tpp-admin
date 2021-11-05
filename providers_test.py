@@ -4,7 +4,7 @@ import tpp_test_scripts as t
 driver = t.init_driver()
 t.login_tpp(driver)
 time.sleep(5)
-
+""
 
 #TP EDIT TESTS
 t.test_edit_tp_open_close(driver)
@@ -29,9 +29,12 @@ t.run_single_filter_test(driver,[3,4])
 
 
 #SEARCHES
+
+#FULL
+""
 should_partial = ['bobby','end','rob','be','transp']
 t.search_test(driver,should_partial,t.NAME_SEARCH_KEY)
-should_full = ["Bobbi's Skateboards",'Melissa Medical Transport','Needed For Testing Inc.']
+should_full = ["Winmunax Direct Group",'Melissa Medical Transport','Needed For Testing Inc.']
 t.search_test(driver,should_full,t.NAME_SEARCH_KEY,1)
 shouldnt = ["zzzz","qqqq","pppp"]
 t.search_test(driver,shouldnt,t.NAME_SEARCH_KEY,0)
@@ -42,19 +45,21 @@ should_full_coverage = ["97239","San Francisco, Los Angeles, San Diego"]
 t.search_test(driver,should_full_coverage,t.COVERAGE_SEARCH_KEY)
 shouldnt_coverage = ["zzzz","qqqq","pppp"]
 t.search_test(driver,shouldnt_coverage,t.COVERAGE_SEARCH_KEY,0)
+""
 
 #SEARCH CLEAR
 t.test_clear_search(driver,t.COVERAGE_SEARCH_KEY)
 t.test_clear_search(driver,t.NAME_SEARCH_KEY)
-
+""
 
 #PROVIDER TESTS
 t.view_provider_tests(driver)
+
 t.ctt_test(driver,t.TP_KEY)
 
 #DELETE TEST
 t.test_delete_tp(driver)
-
+""
 #NAV TESTS
 t.run_all_sort_tests(driver)
 

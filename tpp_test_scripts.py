@@ -127,23 +127,23 @@ def get_all_vehicle_data(driver):
     return v_data
 
 def get_current_driver_data(driver):
-    datas = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"]/div/div/div/div')
+    datas = driver.find_elements_by_xpath('//div[@class="MuiTypography-root MuiTypography-body1 LabelValue-value css-9l3uo3"]')
     data_text = []
     test = 0
     for pt in datas:
-        #print(str(test)+" - "+pt.text)
+        print(str(test)+" - "+pt.text)
         data_text.append(pt.text)
         test+=1
     this_d_data = {
-        "FirstName":data_text[1],
-        "LastName":data_text[5],
-        "IsClearToTransport": parse_yes_no(data_text[33]),
+        "FirstName":data_text[0],
+        "LastName":data_text[2],
+        "IsClearToTransport": parse_yes_no(data_text[17]),
     }
     return this_d_data
 
 
 def get_current_vehicle_data(driver):
-    datas = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2"]/div/div/div/div')
+    datas = driver.find_elements_by_xpath('//div[@class="MuiTypography-root MuiTypography-body1 LabelValue-value css-9l3uo3"]')
     data_text = []
     test = 0
     for pt in datas:
@@ -151,13 +151,13 @@ def get_current_vehicle_data(driver):
         data_text.append(pt.text)
         test+=1
     this_v_data = {
-        "make":data_text[1],
-        "model":data_text[3],
-        "year":data_text[5],
-        "vin":data_text[15],
-        "license":data_text[11],
-        "state":data_text[13],
-        "IsClearToTransport": parse_yes_no(data_text[33]),
+        "make":data_text[0],
+        "model":data_text[1],
+        "year":data_text[2],
+        "vin":data_text[7],
+        "license":data_text[5],
+        "state":data_text[6],
+        "IsClearToTransport": parse_yes_no(data_text[18]),
     }
     return this_v_data
 
@@ -816,6 +816,8 @@ def complete_driver_form(driver):
     dropdown_handler(driver,"mui-component-select-MessagingMethod",2)
     dropdown_handler(driver,"mui-component-select-DriverLicenseIssuedInStateCode",random.randint(0,49))
 
+    driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
+
     save_driver_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_driver_button.click()
 
@@ -850,6 +852,8 @@ def complete_vehicle_form(driver):
     # TODO Waiting on fix -> VehicleTypeID
     dropdown_handler(driver,"mui-component-select-VehicleTypeID",random.randint(0,13))
     dropdown_handler(driver,"mui-component-select-VehicleColorID",random.randint(0,15))
+
+    driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
 
     save_v_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_v_button.click()
@@ -1740,6 +1744,7 @@ def find_not_ctt_tp(driver,section_key):
         to_do.append(i)
         i+=1
 
+    result_ent = None
     for ent_i in to_do:
         click_entry(driver,ent_i)
         doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
@@ -1750,6 +1755,7 @@ def find_not_ctt_tp(driver,section_key):
         for state in doc_states:
             if state != None:
                 can_be_used = True
+                result_ent = ent_i
                 break
         if can_be_used:
             break

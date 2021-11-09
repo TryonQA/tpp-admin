@@ -12,12 +12,15 @@ t.go_to_drivers(driver)
 time.sleep(3)
 
 #DRIVER TESTS
-#t.view_driver_tests(driver)
+t.view_driver_tests(driver)
 t.edit_driver_tests(driver)
 t.edit_driver_tests_invalid(driver)
-t.test_delete_driver(driver)
 
 t.ctt_test(driver,t.DRIVER_KEY,False)
+
+t.go_to_drivers(driver)
+time.sleep(3)
+t.test_delete_driver(driver)
 t.go_to_drivers(driver)
 
 #DRIVER SEARCHES

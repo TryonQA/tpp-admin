@@ -7,7 +7,7 @@ time.sleep(5)
 
 ""
 ""
-"""
+""
 #NAV TESTS
 t.page_change_test(driver,3)
 t.run_all_sort_tests(driver)
@@ -16,14 +16,14 @@ t.page_entries_test(driver)
 driver.refresh()
 time.sleep(3)
 
-"""
+
 t.test_open_close_create_tp(driver)
 t.test_create_tp_no_data(driver)
 t.test_create_tp(driver)
 
 driver.refresh()
 time.sleep(3)
-""
+"""
 t.test_edit_tp_open_close(driver)
 t.test_edit_tp_invalid_field(driver)
 t.test_edit_tp(driver)
@@ -49,10 +49,11 @@ t.search_test(driver,shouldnt_coverage,t.COVERAGE_SEARCH_KEY,0)
 t.test_clear_search(driver,t.COVERAGE_SEARCH_KEY)
 t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 ""
+""
 #PROVIDER TESTS
 t.view_provider_tests(driver)
-t.ctt_test(driver,t.TP_KEY)
-""
+#t.ctt_test(driver,t.TP_KEY)
+"""
 #DRIVER CLICK
 t.go_to_drivers(driver)
 time.sleep(3)

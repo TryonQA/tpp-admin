@@ -20,7 +20,7 @@ t.test_create_tp(driver)
 
 
 
-
+""
 #FILTERS
 t.run_clear_filter_test(driver)
 #running all filter tests is time consuming
@@ -52,7 +52,7 @@ t.search_test(driver,shouldnt_coverage,t.COVERAGE_SEARCH_KEY,0)
 t.test_clear_search(driver,t.COVERAGE_SEARCH_KEY)
 t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 ""
-
+""
 #PROVIDER TESTS
 t.view_provider_tests(driver)
 

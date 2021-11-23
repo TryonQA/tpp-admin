@@ -2,6 +2,7 @@ from os import pipe
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time, random
+import datetime;
 
 PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
 ## ADJUST ABOVE BASED ON LOCAL INSTALL
@@ -31,6 +32,8 @@ qa_url = 'https://tpp-qa.americanlogistics.com/providers'
 ### ADJUST HERE to change environment being tested ###
 active_url = qa_url
 
+def get_qa_tag():
+    return str(datetime.datetime.now()) + " tryon-qa-gb"
 
 def init_driver():
     driver = webdriver.Chrome(PATH)
@@ -115,7 +118,7 @@ def get_all_vehicle_data(driver):
         co_entries = get_company_entries(driver)
         num_entries = len(co_entries)
         if i < len(co_entries):
-            print("checking vehicle: " + str(i+1) + " / " + str(num_entries))
+            #print("checking vehicle: " + str(i+1) + " / " + str(num_entries))
             company = co_entries[i] 
             company.click()
             time.sleep(2)
@@ -157,7 +160,7 @@ def get_current_vehicle_data(driver):
         "vin":data_text[7],
         "license":data_text[5],
         "state":data_text[6],
-        "IsClearToTransport": parse_yes_no(data_text[18]),
+        "IsClearToTransport": parse_yes_no(data_text[-1]),
     }
     return this_v_data
 
@@ -683,8 +686,15 @@ def click_all_date_buttons(driver,nextMonth = False):
         time.sleep(1)
         if nextMonth:
             next_month = driver.find_element_by_xpath('//div[@class="css-k008qs"]/button[2]')
-            next_month.click()
-            time.sleep(1)
+            #print(next_month.get_attribute('disabled'))
+            if next_month.get_attribute('disabled') == 'true':
+                prev_month = driver.find_element_by_xpath('//div[@class="css-k008qs"]/button[1]')
+                prev_month.click()
+                time.sleep(1.5)
+            else:
+                next_month.click()
+                time.sleep(1.5)
+                
         dates = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiPickersDay-root MuiPickersDay-dayWithMargin css-2rgxex"]')
         dates[random.randint(0,len(dates)-2)].click()
         time.sleep(0.5)
@@ -783,7 +793,7 @@ def complete_doc_upload(driver,doc_label):
         else:
             pre_month = driver.find_element_by_xpath('//button[@aria-label="Previous month"]')
             pre_month.click()
-        time.sleep(0.5)
+        time.sleep(1.5)
         dates = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiPickersDay-root MuiPickersDay-dayWithMargin css-2rgxex"]')
         dates[14].click()
         time.sleep(1)
@@ -800,7 +810,7 @@ def print_inputs(driver):
 
 def complete_driver_form(driver):
     click_all_date_buttons(driver,True)
-    first = get_random_name()
+    first = get_qa_tag()
     phone = get_random_number(10,True)
     last = get_random_name()
     
@@ -843,7 +853,7 @@ def complete_vehicle_form(driver):
         get_random_char(2)+get_random_number(2)+get_random_char(1)+get_random_number(1)+get_random_char(2)+get_random_number(6))
     makeModel = REAL_VEHICLES[random.randint(0,len(REAL_VEHICLES)-1)]
     make = makeModel[0]
-    model = makeModel[1]
+    model = 'tryon-qa-gb'
     driver.find_element_by_xpath('//input[@name="VehicleMake"]').send_keys(make)
     driver.find_element_by_xpath('//input[@name="VehicleModel"]').send_keys(model)
     driver.find_element_by_xpath('//input[@name="VehicleYear"]').send_keys(str(2000+random.randint(0,22)))
@@ -1195,7 +1205,7 @@ def complete_create_tp_form(driver,company_name,save = True):
     driver.find_element_by_xpath('//input[@name="BillingPhone"]').send_keys(b_phone)
     #BillingPhoneCountryCode
     #BillingPhoneExtension
-    o_first = get_random_name()
+    o_first = get_qa_tag()
     o_last = get_random_name()
     driver.find_element_by_xpath('//input[@name="OwnerFirstName"]').send_keys(o_first)
     driver.find_element_by_xpath('//input[@name="OwnerLastName"]').send_keys(o_last)

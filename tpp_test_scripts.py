@@ -29,6 +29,7 @@ creds.close()
 
 dev_url = 'https://tpp-dev.americanlogistics.com/providers'
 qa_url = 'https://tpp-qa.americanlogistics.com/providers'
+uat_url = 'https://tpp-uat.americanlogistics.com/providers'
 ### ADJUST HERE to change environment being tested ###
 active_url = qa_url
 
@@ -677,6 +678,26 @@ def row_counter(driver,render_field_index = 0):
     docs = doc_list.find_elements_by_xpath('.//div[@role="row"]')
     return len(docs)
 
+def blank_driver_dates(driver):
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//button[contains(text(),"Edit")]')
+    edit_button.click()
+    time.sleep(1)
+
+    blank_dates(driver)
+
+    time.sleep(1)
+    save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(1)    
+
+def blank_dates(driver):
+    dates = driver.find_elements_by_xpath('//input[@placeholder="mm/dd/yyyy"]')
+    for field in dates:
+        field.send_keys(Keys.CONTROL + "a")
+        field.send_keys(Keys.DELETE)
+    
+
 def click_all_date_buttons(driver,nextMonth = False):
     date_buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiIconButton-root MuiIconButton-edgeEnd MuiIconButton-sizeMedium css-slyssw"]')
     for db in date_buttons:
@@ -779,6 +800,7 @@ def complete_doc_upload(driver,doc_label):
         type_button = driver.find_element_by_xpath('//li[contains(text(),"'+doc_label+'")]')
         # list contains 15 types
         driver.execute_script("arguments[0].scrollIntoView();", type_button)
+        time.sleep(0.5)
         type_button.click()
     else:
         add_button = driver.find_element_by_xpath('//button[contains(text(),"Add Document")]')
@@ -1105,7 +1127,7 @@ def page_entries_test(driver):
         evaluate_entries_per_page(driver)
 
 def hundred_per_page(driver):
-    dropdown = driver.find_element_by_xpath('//div[@class="MuiSelect-root MuiSelect-select MuiTablePagination-select MuiSelect-selectMenu MuiInputBase-input"]')
+    dropdown = driver.find_element_by_xpath('//div[@class="MuiTablePagination-select MuiSelect-select MuiSelect-standard MuiInputBase-input css-1cccqvr"]')
     num_entries_dropdown_id = dropdown.get_attribute('id')
     #watch this, getting some odd behavior from big entry list loading
     dropdown_handler(driver,num_entries_dropdown_id,5)
@@ -1587,6 +1609,23 @@ def view_vehicle_tests(driver):
     test_doc_delete(driver)
 
     back_to_vehicles(driver)
+
+def edit_driver_by_field(driver,data_tag,new_data):
+    time.sleep(1)
+    edit_button = driver.find_element_by_xpath('//button[contains(text(),"Edit")]')
+    edit_button.click()
+    time.sleep(1)
+
+    field = driver.find_element_by_xpath('//input[@name="'+data_tag+'"]')
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys(new_data)
+    save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(3)
+
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button.click()
 
 def edit_driver_tests(driver):
     click_driver(driver,0)

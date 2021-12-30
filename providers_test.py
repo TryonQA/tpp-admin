@@ -2,6 +2,8 @@ import time
 import tpp_test_scripts as t
 import sys
 
+read_only = False
+
 args = sys.argv
 url = t.qa_url
 if len(args) > 1:
@@ -9,8 +11,11 @@ if len(args) > 1:
         url =t.uat_url
     if args[1] == "dev":
         url = t.dev_url
-
+""
+t.test_accounting(url)
+""
 driver = t.init_driver()
+
 t.login_tpp(driver,url)
 time.sleep(5)
 ""
@@ -39,21 +44,21 @@ t.run_single_filter_test(driver,[3,4])
 
 
 #SEARCHES
-
+""
 #FULL
 ""
-should_partial = ['bobby','end','rob','be','transp']
+should_partial = ['bobby','end','rob','be']
 t.search_test(driver,should_partial,t.NAME_SEARCH_KEY)
 should_full = ["Winmunax Direct Group",'Melissa Medical Transport','Needed For Testing Inc.']
 t.search_test(driver,should_full,t.NAME_SEARCH_KEY,1)
-shouldnt = ["zzzz","qqqq","pppp"]
+shouldnt = ["zzzz"]
 t.search_test(driver,shouldnt,t.NAME_SEARCH_KEY,0)
 # TODO add accumulator in test function to measure total passes v fails
 should_coverage = ["n f","bos","97"]
 t.search_test(driver,should_coverage,t.COVERAGE_SEARCH_KEY)
 should_full_coverage = ["97239","San Francisco, Los Angeles, San Diego"]
 t.search_test(driver,should_full_coverage,t.COVERAGE_SEARCH_KEY)
-shouldnt_coverage = ["zzzz","qqqq","pppp"]
+shouldnt_coverage = ["zzzz"]
 t.search_test(driver,shouldnt_coverage,t.COVERAGE_SEARCH_KEY,0)
 ""
 
@@ -61,10 +66,9 @@ t.search_test(driver,shouldnt_coverage,t.COVERAGE_SEARCH_KEY,0)
 t.test_clear_search(driver,t.COVERAGE_SEARCH_KEY)
 t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 ""
-""
 #PROVIDER TESTS
 t.view_provider_tests(driver)
-
+""
 t.ctt_test(driver,t.TP_KEY)
 
 #DELETE TEST

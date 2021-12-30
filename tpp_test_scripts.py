@@ -2,12 +2,13 @@ from os import pipe
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time, random
-import datetime;
+import datetime
+import requests
 
 PATH = "C:\Program Files (x86)\ChromeDriver\chromedriver.exe"
 ## ADJUST ABOVE BASED ON LOCAL INSTALL
 
-FILTER_TAGS = ["Clear to transport","Not clear to transport",\
+FILTER_TAGS = ["Clear to transport","Not clear to transport","Active","Not Active",\
     "Wheelchair v. available","Has drug testing","Has supplier diversity"]
 REAL_VEHICLES = [("Ford","Transit 350"),("Dodge","Grand Caravan"),("Honda","Accord"),\
     ("Ford","F-150"),("GMC","Yukon"),("Toyota","Yaris")]
@@ -21,10 +22,24 @@ DRIVER_KEY = 'driver_key'
 VEHICLE_KEY = 'vehicle_key'
 
 creds = open('creds.txt')
+
 creds_data = creds.readline()
 comma = creds_data.find(",")
 user = creds_data[:comma]
 password = creds_data[comma+1:]
+""
+creds_data_2 = creds.readline()
+comma2 = creds_data_2.find(",")
+acc_user = creds_data_2[:comma2]
+acc_password = creds_data_2[comma2+1:]
+
+creds_data_3 = creds.readline()
+comma3 = creds_data_3.find(",")
+ro_user = creds_data_3[:comma3]
+ro_password = creds_data_3[comma3+1:]
+
+#print(ro_user,ro_password)
+""
 creds.close()
 
 dev_url = 'https://tpp-dev.americanlogistics.com/providers'
@@ -37,32 +52,50 @@ def get_qa_tag():
     return str(datetime.datetime.now()) + " tryon-qa-gb"
 
 def init_driver():
-    driver = webdriver.Chrome(PATH)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--ignore-certificate-error")
+    options.add_argument("--ignore-ssl-errors")
+    driver = webdriver.Chrome(PATH, options=options)
+    
     driver.implicitly_wait(4)
     return driver
 
-def login_tpp(driver,url=active_url):
+def login_tpp(driver,url=active_url,login_key="admin"):
+    ""
+    if login_key == "admin":
+        u = user
+        p = password
+    if login_key == "accounting":
+        u = acc_user
+        p = acc_password
+    if login_key == "read_only":
+        u = ro_user
+        p = ro_password
+    ""
     driver.get(url)
     #time.sleep(2)
     button = driver.find_element_by_class_name('MuiButton-containedPrimary')
     button.click()
     time.sleep(3)
     uname = driver.find_element_by_id('i0116')
-    uname.send_keys(user)
+    uname.send_keys(u)
 
     u_button = driver.find_element_by_id('idSIButton9')
     u_button.click()
     time.sleep(2)
 
     pwd = driver.find_element_by_id('i0118')
-    pwd.send_keys(password)
+    pwd.send_keys(p)
 
     p_button = driver.find_element_by_id('idSIButton9')
     p_button.click()
     time.sleep(2)
 
-    c_button = driver.find_element_by_id('idSIButton9')
-    c_button.click()
+    if len(driver.find_elements_by_xpath('//div[@class="row text-title"]')) > 0:
+        if driver.find_element_by_xpath('//div[@class="row text-title"]').text == "Stay signed in?":
+            c_button = driver.find_element_by_id('idSIButton9')
+            c_button.click()
+
 
 def scroll_top(driver):
     driver.find_element_by_tag_name('body').send_keys(Keys.CONTROL + Keys.HOME)
@@ -82,13 +115,18 @@ def open_filters_menu(driver):
 def close_filters_menu(driver):
     f_knob = driver.find_element_by_xpath('//ul[@aria-labelledby="filter-label"]')
     action = webdriver.common.action_chains.ActionChains(driver)
-    action.move_to_element_with_offset(f_knob, -5, 0)
+    action.move_to_element_with_offset(f_knob, -4, 0)
     action.click()
     action.perform()
 
 def get_company_entries(driver):
     companies = driver.find_elements_by_xpath('//a[@href="#"]')
     return companies
+
+def get_random_vin():
+    res = requests.get("https://randomvin.com/getvin.php?type=fake")
+    vin = res.text
+    return vin
 
 
 def filter_clicker(driver,filter_buttons_list,close=True):
@@ -144,6 +182,21 @@ def get_current_driver_data(driver):
         "IsClearToTransport": parse_yes_no(data_text[17]),
     }
     return this_d_data
+
+def provider_link_test(driver):
+    link = driver.find_element_by_xpath('//a[@class="MuiTypography-root MuiTypography-inherit MuiLink-root MuiLink-underlineHover LabelLink-link css-1tltjjo"]')
+    orig_provider = link.text
+    link.click()
+    time.sleep(1.5)
+    data = get_current_company_data(driver)
+    if data["TransportationProviderName"] == orig_provider:
+        print("PASS - Active link to "+orig_provider)
+    else:
+        print("FAIL - " + orig_provider + " unreached.")
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
+    back_button.click()
+    
+
 
 
 def get_current_vehicle_data(driver):
@@ -220,24 +273,25 @@ def get_current_company_data(driver):
         "County":l_data_text[19],
         "MainPhone":strip_non_numeric(l_data_text[21])[1:],
         "DispatchPhone":strip_non_numeric(l_data_text[23])[1:],
-        "BillingContactFirstName":l_data_text[25],
-        "BillingContactLastName":l_data_text[27],
-        "BillingEmailAddress":l_data_text[39],
-        "BillingAddressLine1":l_data_text[29],
-        "BillingCity":l_data_text[33],
-        "BillingZipCode":l_data_text[37],
-        "AccountNumber":l_data_text[41],
-        "BillingPhone":strip_non_numeric(l_data_text[43])[1:],
-        "OwnerFirstName":l_data_text[55],
-        "OwnerLastName":l_data_text[57],
-        "OwnerEmailAddress":l_data_text[59],
-        "OwnerPhone":strip_non_numeric(l_data_text[61])[1:],
-        "EmployerIdentificationNumber":l_data_text[51],
-        "LegalEntityBusinessName":l_data_text[53],
-        "PhysicalAddressLine1":l_data_text[71],
-        "PhysicalCity":l_data_text[75],
-        "PhysicalZipCode":l_data_text[79],
-        "NPINumber":l_data_text[103],
+        "MessagingMethod":l_data_text[25],
+        "BillingContactFirstName":l_data_text[27],
+        "BillingContactLastName":l_data_text[29],
+        "BillingEmailAddress":l_data_text[41],
+        "BillingAddressLine1":l_data_text[31],
+        "BillingCity":l_data_text[35],
+        "BillingZipCode":l_data_text[39],
+        "AccountNumber":l_data_text[43],
+        "BillingPhone":strip_non_numeric(l_data_text[45])[1:],
+        "OwnerFirstName":l_data_text[57],
+        "OwnerLastName":l_data_text[59],
+        "OwnerEmailAddress":l_data_text[61],
+        "OwnerPhone":strip_non_numeric(l_data_text[63])[1:],
+        "EmployerIdentificationNumber":l_data_text[53],
+        "LegalEntityBusinessName":l_data_text[55],
+        "PhysicalAddressLine1":l_data_text[73],
+        "PhysicalCity":l_data_text[77],
+        "PhysicalZipCode":l_data_text[81],
+        "NPINumber":l_data_text[105],
         "CommercialInsuranceCompanyName":ins_data_text[0],
         "CommercialInsurancePolicyNumber":ins_data_text[1],
         "CommercialAggregateAmount":strip_non_numeric(ins_data_text[4])[:-2],
@@ -247,34 +301,34 @@ def get_current_company_data(driver):
         "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[10])[:-2],
         "AutoPropertyDamage":strip_non_numeric(ins_data_text[11])[:-2],
         "AutoCombinedLimit":strip_non_numeric(ins_data_text[12])[:-2],
-        "CoverageAreas":l_data_text[105],
+        "CoverageAreas":l_data_text[109],
         
         #dropdowns
         "State": l_data_text[15],
-        "BillingState": l_data_text[35],
-        "LegalEntityStateCode": l_data_text[65],
-        "PhysicalState": l_data_text[77],
-        "LegalEntityTypeID": l_data_text[67],
-        "LegalEntityStatusID": l_data_text[69],
-        "TransportationProviderTypeID": l_data_text[81],
-        "TransportationProviderTierID": l_data_text[83],
+        "BillingState": l_data_text[37],
+        "LegalEntityStateCode": l_data_text[67],
+        "PhysicalState": l_data_text[79],
+        "LegalEntityTypeID": l_data_text[69],
+        "LegalEntityStatusID": l_data_text[71],
+        "TransportationProviderTypeID": l_data_text[83],
+        "TransportationProviderTierID": l_data_text[85],
         "CommercialInsuranceStrengthID": ins_data_text[3],
         "AutoInsuranceStrengthID": ins_data_text[8],
         
         #ADD BANK TODO
-        "BankName": l_data_text[45],
-        "BankAccountNumber": l_data_text[49],
-        "BankRoutingNumber": l_data_text[47],
+        "BankName": l_data_text[47],
+        "BankAccountNumber": l_data_text[51],
+        "BankRoutingNumber": l_data_text[49],
 
         #checkboxes
-        "HasReceivedProviderManual": parse_yes_no(l_data_text[85]),
-        "HasWheelchairVehiclesAvailable": parse_yes_no(l_data_text[89]),
-        "HasReceivedNEMTProviderManual": parse_yes_no(l_data_text[99]),
-        "HasSupplierDiversity": parse_yes_no(l_data_text[95]),
-        "HasRegulatedDrugTesting": parse_yes_no(l_data_text[93]),
-        "IsClearToTransport": parse_yes_no(l_data_text[91]),
-        "IsActive": parse_yes_no(l_data_text[97]),
-        "IsCompliant": parse_yes_no(l_data_text[101]),
+        "HasReceivedProviderManual": parse_yes_no(l_data_text[87]),
+        "HasWheelchairVehiclesAvailable": parse_yes_no(l_data_text[91]),
+        "HasReceivedNEMTProviderManual": parse_yes_no(l_data_text[101]),
+        "HasSupplierDiversity": parse_yes_no(l_data_text[97]),
+        "HasRegulatedDrugTesting": parse_yes_no(l_data_text[95]),
+        "IsClearToTransport": parse_yes_no(l_data_text[93]),
+        "IsActive": parse_yes_no(l_data_text[99]),
+        "IsCompliant": parse_yes_no(l_data_text[103]),
         "HasWorkersComp": parse_yes_no(ins_data_text[13])
     }
     
@@ -346,7 +400,7 @@ def get_all_company_data(driver):
             i+=1
             buttons2 = driver.find_elements_by_xpath('//a')
             for b in buttons2:
-                if b.text == "Back to Transportation Providers":
+                if b.text == "Back":
                     b.click()
                     break
             time.sleep(1)
@@ -377,15 +431,24 @@ def filter_checks(driver,filter_buttons_list):
             if d_list["IsClearToTransport"] != False:
                 this_pass = False
                 print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[1])
+        #new activeFilter
         if 2 in filter_buttons_list:
+            if d_list["IsActive"] != True:
+                this_pass = False
+                print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[0])
+        if 3 in filter_buttons_list:
+            if d_list["IsActive"] != False:
+                this_pass = False
+                print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[1])
+        if 4 in filter_buttons_list:
             if d_list["HasWheelchairVehiclesAvailable"] != True:
                 this_pass = False
                 print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[2])
-        if 3 in filter_buttons_list:
+        if 5 in filter_buttons_list:
             if d_list["HasRegulatedDrugTesting"] != True:
                 this_pass = False
                 print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[3])
-        if 4 in filter_buttons_list:
+        if 6 in filter_buttons_list:
             if d_list["HasSupplierDiversity"] != True:
                 this_pass = False
                 print(d_list["TransportationProviderName"] + " FAILED " + FILTER_TAGS[4])
@@ -529,7 +592,7 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
         print(readout)
         text_to_search(driver,to_search,test_field_key)
         to_search_to_check = to_search.lower()
-        time.sleep(2)
+        time.sleep(3)
         if test_field_key == NAME_SEARCH_KEY or test_field_key == COVERAGE_SEARCH_KEY:
             results = get_all_company_data(driver)
             num_results = len(get_company_entries(driver))
@@ -610,6 +673,7 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
             else:
                 print("PASS - No search results confirmed.")
         driver.refresh()
+        time.sleep(1)
         if test_field_key == DRIVER_SEARCH_KEY:
             go_to_drivers(driver)
             time.sleep(1)
@@ -671,6 +735,32 @@ def test_back_button(driver,page_key):
         print('Back to '+back_string+' button - PASS')
     else:
         print('Back to '+back_string+' button - FAIL')
+
+def get_driver_ctt_active_tuples(driver,render_field_index = 0):
+    render_fields = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-virtualScrollerRenderZone css-12efcmn"]')
+    doc_list = render_fields[render_field_index]
+    docs = doc_list.find_elements_by_xpath('.//div[@role="row"]')
+
+    driver_tups = []
+
+    for d in docs:
+        ctt_status = False
+        active_status = False
+
+        ctt_flag = d.find_element_by_xpath('.//div[@data-field="IsClearToTransport"]/div[1]/*[local-name() = "svg"]')
+        ctt_flag_status = ctt_flag.get_attribute("class")
+        if 'alert' not in ctt_flag_status:
+            ctt_status = True
+
+        active_flag = d.find_element_by_xpath('.//div[@data-field="IsActive"]/div[1]/*[local-name() = "svg"]')
+        active_flag_status = active_flag.get_attribute("class")
+        if 'alert' not in active_flag_status:
+            active_status = True
+        this_d_tup = (ctt_status,active_status)
+        driver_tups.append(this_d_tup)
+
+    return driver_tups
+
 
 def row_counter(driver,render_field_index = 0):
     render_fields = driver.find_elements_by_xpath('//div[@class="MuiDataGrid-virtualScrollerRenderZone css-12efcmn"]')
@@ -830,7 +920,7 @@ def print_inputs(driver):
     for i in inputs:
         print(i.get_attribute('name'))
 
-def complete_driver_form(driver):
+def complete_driver_form(driver, is_active = True):
     click_all_date_buttons(driver,True)
     first = get_qa_tag()
     phone = get_random_number(10,True)
@@ -848,31 +938,36 @@ def complete_driver_form(driver):
     dropdown_handler(driver,"mui-component-select-MessagingMethod",2)
     dropdown_handler(driver,"mui-component-select-DriverLicenseIssuedInStateCode",random.randint(0,49))
 
-    driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
+    if is_active:
+        driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
 
     save_driver_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_driver_button.click()
 
     time.sleep(1)
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
     time.sleep(2)
 
+def back_to_providers(driver):
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
+    back_button.click()
+
 def back_to_vehicles(driver):
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Vehicles")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def back_to_drivers(driver):
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def complete_vehicle_form(driver):
+    vin = get_random_vin()
     click_all_date_buttons(driver)
     driver.find_element_by_xpath('//input[@name="LicensePlate"]').send_keys(get_random_char(3)+get_random_number(3))
-    driver.find_element_by_xpath('//input[@name="VehicleVIN"]').send_keys(get_random_char(2)+get_random_number(1)+\
-        get_random_char(2)+get_random_number(2)+get_random_char(1)+get_random_number(1)+get_random_char(2)+get_random_number(6))
+    driver.find_element_by_xpath('//input[@name="VehicleVIN"]').send_keys(vin)
     makeModel = REAL_VEHICLES[random.randint(0,len(REAL_VEHICLES)-1)]
     make = makeModel[0]
     model = 'tryon-qa-gb'
@@ -892,7 +987,7 @@ def complete_vehicle_form(driver):
 
     time.sleep(1)
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Vehicles")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
     time.sleep(2)
@@ -1216,6 +1311,9 @@ def complete_create_tp_form(driver,company_name,save = True):
     driver.find_element_by_xpath('//input[@name="BillingContactLastName"]').send_keys(c_last)
     driver.find_element_by_xpath('//input[@name="BillingEmailAddress"]').send_keys(c_last+email_end)
     driver.find_element_by_xpath('//input[@name="BillingAddressLine1"]').send_keys(address)
+    #MessagingMethod
+    dropdown_handler(driver,"mui-component-select-DefaultDriverMessagingMethodID",2)
+    mm_type = dropdown_scraper(driver,"mui-component-select-DefaultDriverMessagingMethodID",2)
     #BillingAddressLine2
     driver.find_element_by_xpath('//input[@name="BillingCity"]').send_keys(city)
     #BillingState
@@ -1295,7 +1393,7 @@ def complete_create_tp_form(driver,company_name,save = True):
     driver.find_element_by_xpath('//input[@name="AutoBodilyInjuryPerson"]').send_keys(bi_pp)
     driver.find_element_by_xpath('//input[@name="AutoBodilyInjuryAccident"]').send_keys(bi_pa)
     driver.find_element_by_xpath('//input[@name="AutoPropertyDamage"]').send_keys(pd_pa)
-    driver.find_element_by_xpath('//input[@name="AutoCombinedLimit"]').send_keys(combined)
+    #driver.find_element_by_xpath('//input[@name="AutoCombinedLimit"]').send_keys(combined)
 
     bank = get_random_char(1)+". "+get_random_char(1)+". "+get_random_name()+get_random_name()+" bank"
     b_acct = get_random_number(12)
@@ -1328,6 +1426,7 @@ def complete_create_tp_form(driver,company_name,save = True):
         "BillingZipCode":zipcode,
         "AccountNumber":acct,
         "BillingPhone":b_phone,
+        "MessagingMethod":mm_type,
         "OwnerFirstName":o_first,
         "OwnerLastName":o_last,
         "OwnerEmailAddress":o_last+email_end,
@@ -1346,7 +1445,7 @@ def complete_create_tp_form(driver,company_name,save = True):
         "AutoBodilyInjuryPerson":bi_pp,
         "AutoBodilyInjuryAccident":bi_pa,
         "AutoPropertyDamage":pd_pa,
-        "AutoCombinedLimit":combined,
+        "AutoCombinedLimit":"",
         "CoverageAreas":city,
         #dropdowns
         
@@ -1385,7 +1484,7 @@ def complete_create_tp_form(driver,company_name,save = True):
     return should
 
 def back_to_tp(driver):
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def test_create_tp(driver):
@@ -1400,7 +1499,7 @@ def test_create_tp(driver):
         close_create(driver)
     else:
         strong_validate_new_tp(driver,to_check)
-        back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+        back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
         back_button.click()
 
         time.sleep(5)
@@ -1514,7 +1613,7 @@ def test_edit_tp_open_close(driver):
         print('PASS - Edit provider page closed')
     else:
         print('FAIL - Edit provider not closed')
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def test_edit_tp_invalid_field(driver):
@@ -1527,7 +1626,7 @@ def test_edit_tp_invalid_field(driver):
     save_button.click()
     confirm_errors_message(driver)
     close_create(driver)
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def test_edit_tp(driver):
@@ -1552,8 +1651,36 @@ def test_edit_tp(driver):
         else:
             print('FAIL - TP not edited')
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Transportation Providers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
+
+def tp_future_auto_ins(driver):
+    edit_button = driver.find_element_by_xpath('//button[contains(text(),"Edit")]')
+    edit_button.click()
+    time.sleep(0.5)
+    future = "12252024"
+    fields = driver.find_elements_by_xpath('//label[contains(text(),"Expiration date")]//ancestor::div/div/input')
+    field = fields[1]
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys(future)
+    save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(2)
+
+def tp_past_auto_ins(driver):
+    edit_button = driver.find_element_by_xpath('//button[contains(text(),"Edit")]')
+    edit_button.click()
+    time.sleep(0.5)
+    past = "12252020"
+    fields = driver.find_elements_by_xpath('//label[contains(text(),"Expiration date")]//ancestor::div/div/input')
+    field = fields[1]
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys(past)
+    save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+    save_button.click()
+    time.sleep(2)
 
 def get_all_driver_names(driver):
     time.sleep(1)
@@ -1583,6 +1710,8 @@ def view_driver_tests(driver):
     click_driver(driver,0)
     time.sleep(1)
 
+    provider_link_test(driver)
+
     doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
     doc_button.click()
     time.sleep(2)
@@ -1591,7 +1720,7 @@ def view_driver_tests(driver):
     test_doc_edit(driver)
     test_doc_delete(driver)
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def view_vehicle_tests(driver):
@@ -1599,6 +1728,7 @@ def view_vehicle_tests(driver):
     click_vehicle(driver,0)
 
     time.sleep(1)
+    provider_link_test(driver)
 
     doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
     doc_button.click()
@@ -1624,7 +1754,7 @@ def edit_driver_by_field(driver,data_tag,new_data):
     save_button.click()
     time.sleep(3)
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def edit_driver_tests(driver):
@@ -1653,7 +1783,7 @@ def edit_driver_tests(driver):
         else:
             print('FAIL - Driver not edited')
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def edit_vehicle_tests(driver):
@@ -1700,7 +1830,7 @@ def edit_driver_tests_invalid(driver):
     confirm_errors_message(driver)
     close_create(driver)
 
-    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back to Drivers")]')
+    back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
 
 def edit_vehicle_tests_invalid(driver):
@@ -1712,6 +1842,20 @@ def edit_vehicle_tests_invalid(driver):
     field = driver.find_element_by_xpath('//input[@name="LicensePlate"]')
     field.send_keys(Keys.CONTROL + "a")
     field.send_keys(Keys.DELETE)
+    save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+    save_button.click()
+    confirm_errors_message(driver)
+    close_create(driver)
+
+    time.sleep(1)
+    print("Testing VIN validation")
+    edit_button = driver.find_element_by_xpath('//button[contains(text(),"Edit")]')
+    edit_button.click()
+
+    field = driver.find_element_by_xpath('//input[@name="VehicleVIN"]')
+    field.send_keys(Keys.CONTROL + "a")
+    field.send_keys(Keys.DELETE)
+    field.send_keys("1234")
     save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_button.click()
     confirm_errors_message(driver)
@@ -1890,15 +2034,22 @@ def create_vehicles(driver,amount):
         amount -= 1
     driver.refresh()
 
-def create_drivers(driver,amount):
-    click_entry(driver,0)
+def create_drivers(driver,amount,ctt_test=False):
+    if len(driver.find_elements_by_xpath('//button[contains(text(),"Add Driver")]')) == 0:
+        click_entry(driver,0)
     time.sleep(1)
+    active = True
+    if ctt_test:
+        active =False
     while amount > 0:
         add_driver_button = driver.find_element_by_xpath('//button[contains(text(),"Add Driver")]')
         add_driver_button.click()
-        complete_driver_form(driver)
+        complete_driver_form(driver,active)
         amount -= 1
-    driver.refresh()
+        if active == False:
+            active = True
+    if not ctt_test:
+        driver.refresh()
 
 
 def ctt_test(driver,key,docs_needed = True):
@@ -1923,6 +2074,11 @@ def ctt_test(driver,key,docs_needed = True):
         ti_button = driver.find_element_by_xpath('//button[contains(text(),"nfo")]')
         ti_button.click()
 
+    if key == TP_KEY:
+        create_drivers(driver,2,True)
+        pre_driver_tups = get_driver_ctt_active_tuples(driver)
+        #print(pre_driver_tups)
+
     ctt_status = check_ctt_status(driver)
     if ctt_status:
         toggle_ctt(driver)
@@ -1932,7 +2088,10 @@ def ctt_test(driver,key,docs_needed = True):
         elif key == DRIVER_KEY:
             check_obj = get_current_driver_data(driver)
         elif key == TP_KEY:
+            post_driver_tups = get_driver_ctt_active_tuples(driver)
+            #print(post_driver_tups)
             check_obj = get_current_company_data(driver)
+            check_driver_toggles(pre_driver_tups,post_driver_tups)
         #print(check_obj)
         if check_obj["IsClearToTransport"]:
             print("PASS - CTT successfully saved")
@@ -1960,6 +2119,25 @@ def ctt_test(driver,key,docs_needed = True):
         print("FAIL - CTT flag not updated")
 
     driver.refresh()
+
+def check_driver_toggles(pre_tups,post_tups):
+    passed = True
+    i = 0
+    for t in pre_tups:
+        if t[1] == True: #active case
+            if not post_tups[i][0]:
+                print("Driver to CTTtoggle - FAIL!")
+                passed = False
+        else: #not active cas
+            if t[0] != post_tups[i][0]:
+                print("Erroneous driver toggle - FAIL!")
+                passed = False
+
+        i+=1
+    if passed:
+        print("PASS - drivers correctly toggle to CTT")
+    else:
+        print("FAIL - problem with driver CTT toggle")
 
 def get_doc_row(driver,doc_type):
     title_text = driver.find_element_by_xpath('//a[contains(text(),"'+ doc_type+'")]//ancestor::div[1]')
@@ -2031,23 +2209,104 @@ def test_doc_delete(driver):
         else:
             print('FAIL - Document '+title+' not deleted')
 
-"""
-driver = init_driver()
-login_tpp(driver)
-time.sleep(2)
+def delete_doc_by_title(driver,title):
+    if len(driver.find_elements_by_xpath('//button[contains(text(),"Documents")]')) > 0:
+        scroll_top(driver)
+        time.sleep(1)
+        doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
+        doc_button.click()
+        time.sleep(1)
+    if len(driver.find_elements_by_xpath('//button[@aria-label="delete" and not(@disabled)]')) > 0:
+        possible_rows = driver.find_elements_by_xpath('//button[@aria-label="delete" and not(@disabled)]//ancestor::div[2]')
+        for p in possible_rows:
+            row = p.get_attribute("data-rowindex")
+            title_to_check = driver.find_element_by_xpath('//div[@data-rowindex="'+str(row)+'"]/div/a').text
+            if title_to_check == title:
+                delete_button = driver.find_element_by_xpath('//div[@data-rowindex="'+str(row)+'"]/div/button[3]')
+                delete_button.click()
+        
+                yes_button = driver.find_element_by_xpath('//button[contains(text(),"Yes")]')
+                yes_button.click()
+                time.sleep(1)
+    else:
+        print("No docs to delete")
 
+def edit_doc_by_title(driver,title,past = True):
+    if len(driver.find_elements_by_xpath('//button[contains(text(),"Documents")]')) > 0:
+        scroll_top(driver)
+        time.sleep(1)
+        doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
+        doc_button.click()
+        time.sleep(1)
+    if len(driver.find_elements_by_xpath('//button[@aria-label="delete" and not(@disabled)]')) > 0:
+        possible_rows = driver.find_elements_by_xpath('//button[@aria-label="delete" and not(@disabled)]//ancestor::div[2]')
+        for p in possible_rows:
+            row = p.get_attribute("data-rowindex")
+            title_to_check = driver.find_element_by_xpath('//div[@data-rowindex="'+str(row)+'"]/div/a').text
+            if title_to_check == title:
+                edit_button = driver.find_element_by_xpath('//div[@data-rowindex="'+str(row)+'"]/div/button[2]')
+                edit_button.click()
+                date_fields = driver.find_elements_by_xpath('//input[@placeholder="mm/dd/yyyy"]')
+                field1 = date_fields[1]
+                field2 = date_fields[2]
+                if past:
+                    date1 = '12252020'
+                    date2 = '12302020'
+                else:
+                    date1 = '12252020'
+                    date2 = '12302022'
+                field1.send_keys(Keys.CONTROL + "a")
+                field1.send_keys(Keys.DELETE)
+                field1.send_keys(date1)
+                field2.send_keys(Keys.CONTROL + "a")
+                field2.send_keys(Keys.DELETE)
+                field2.send_keys(date2)
+                save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
+                save_button.click()
+                time.sleep(1)
+
+def test_accounting(url):
+    driver = init_driver()
+    login_tpp(driver,url,"accounting")
+    time.sleep(2)
+
+    print("TESTING ACCOUNTING PERMISSION")
+    click_entry(driver,0)
+    c_data = get_current_company_data(driver)
+
+    if c_data["BankAccountNumber"].startswith("xxx"):
+        print("FAIL - Bank account obscured - " + c_data["BankAccountNumber"])
+    else:
+        print("PASS - Bank account visible - " + c_data["BankAccountNumber"])
+
+
+    if c_data["BankRoutingNumber"].startswith("xxx"):
+        print("FAIL - Bank routing obscured - " + c_data["BankRoutingNumber"])
+    else:
+        print("PASS - Bank routing visible - " + c_data["BankRoutingNumber"])
+    driver.close() 
+    driver.quit()
+
+    time.sleep(2) 
 
 
 ""
 
+"""
+driver = init_driver()
+login_tpp(driver,dev_url)
+time.sleep(2)
 
-#get_current_company_data(driver)
+click_entry(driver,0)
+data = get_current_company_data(driver)
+print(data)
 #prefill_providers(driver)
 ""
 
-create_providers(driver,3)
+#create_providers(driver,1)
 #create_vehicles(driver,5)
-#create_drivers(driver,5)
+#create_drivers(driver,2)
+#ctt_test(driver,TP_KEY)
 
 #test_create_tp(driver)
 

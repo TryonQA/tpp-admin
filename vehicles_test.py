@@ -21,7 +21,7 @@ t.go_to_vehicles(driver)
 time.sleep(3)
 
 #VIEW TESTS
-#t.view_vehicle_tests(driver)
+t.view_vehicle_tests(driver)
 t.edit_vehicle_tests(driver)
 t.edit_vehicle_tests_invalid(driver)
 t.test_delete_vehicle(driver)

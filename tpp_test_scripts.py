@@ -920,7 +920,7 @@ def print_inputs(driver):
     for i in inputs:
         print(i.get_attribute('name'))
 
-def complete_driver_form(driver, is_active = True):
+def complete_driver_form(driver,is_active = True):
     click_all_date_buttons(driver,True)
     first = get_qa_tag()
     phone = get_random_number(10,True)
@@ -985,7 +985,7 @@ def complete_vehicle_form(driver):
     save_v_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_v_button.click()
 
-    time.sleep(1)
+    time.sleep(2)
 
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()

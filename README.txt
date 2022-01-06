@@ -14,9 +14,14 @@ Qs:
 drivers_test and providers_test Running OK locally 9/20/21 -gb
 adapted to multi-file 
 
+Main test operations:
+python providers_test.py 
+python drivers_test.py 
+python vehicles_test.py
+
 
 --TEST CAFE NOTES --
 CMD to run test:
 testcafe chrome transportation_providers.js --skip-js-errors
-
+ABANDONED 9/2021
 Currently hanging on click of AMERICAN LOGISTICS ADMIN button.

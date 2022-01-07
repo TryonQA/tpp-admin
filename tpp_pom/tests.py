@@ -17,7 +17,7 @@ login_result = login_test.login_test(driver,admin_username,admin_password)
 r.handle_results(login_result)
 
 #PROVIDER HOME NAVIGATION TESTS
-
+""
 clear_filter_result = providers_nav_test.filter_clear_test(driver)
 r.handle_results(clear_filter_result)
 
@@ -108,7 +108,7 @@ r.handle_results(create_vehicle_result)
 
 vehicle_navigation_test_result = vehicles_tests.vehicle_navigation_test(driver)
 r.handle_results(vehicle_navigation_test_result)
-
+""
 # DELETE TEST
 delete_provider_result = providers_data_test.delete_provider_test(driver)
 r.handle_results(delete_provider_result)

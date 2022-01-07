@@ -79,7 +79,7 @@ def create_provider_test(driver:webdriver.Chrome):
         create_form.complete_form(provider_data)
 
         create_form.save_form()
-        time.sleep(2)
+        time.sleep(3)
         
         if create_form.check_form_alive():
             result = "FAIL"
@@ -89,6 +89,7 @@ def create_provider_test(driver:webdriver.Chrome):
         else:
             new_provider_page = providers_detail.ProviderDetail(driver)
             finished_provider_data = new_provider_page.get_data()
+            new_provider_page.refresh_buttons()
             new_provider_page.click_back()
             #differences = h.compare_provider_data(provider_data,finished_provider_data)
             if finished_provider_data["TransportationProviderName"] == provider_data["TransportationProviderName"]\
@@ -288,6 +289,7 @@ def delete_provider_test(driver:webdriver.Chrome):
 
     try:
         providers_page = providers_home.ProvidersHome(driver)
+        time.sleep(3)
         target_data = providers_page.get_top_provider_data()
         providers_page.delete_provider()
         time.sleep(1)
@@ -321,17 +323,3 @@ def template_test(driver:webdriver.Chrome):
 
     return (result,test_tag,detail)
 
-
-"""
-
-#PROVIDER TESTS
-
-    #ADD DRIVER
-
-    #ADD VEHICLE
-
-t.ctt_test(driver,t.TP_KEY)
-
-#DELETE TEST
-t.test_delete_tp(driver)
-"""

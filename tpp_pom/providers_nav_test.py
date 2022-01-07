@@ -41,6 +41,7 @@ def filter_test(driver:webdriver.Chrome, filter_list):
         filter_popup.click_filter_checkboxes(filter_list)
         for t in filter_list:
             test_tag += " - " + filter_popup.tags[t]
+        time.sleep(3)
         filter_popup.close()
         time.sleep(5)
         filtered_providers_page = providers_home.ProvidersHome(driver)
@@ -421,9 +422,3 @@ def template_test(driver:webdriver.Chrome):
         h.refresh_site(driver)
 
     return (result,test_tag,detail)
-"""
-
-#NAV TESTS TODO refactor
-t.run_all_sort_tests(driver)
-
-"""

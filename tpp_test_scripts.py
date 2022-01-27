@@ -74,8 +74,9 @@ def login_tpp(driver,url=active_url,login_key="admin"):
     ""
     driver.get(url)
     #time.sleep(2)
-    button = driver.find_element_by_class_name('MuiButton-containedPrimary')
-    button.click()
+    username_field = driver.find_element_by_xpath('//input[@name="username"]')
+    username_field.send_keys(u)
+    driver.find_element_by_xpath('//input[@id="idp-discovery-submit"]').click()
     time.sleep(3)
     uname = driver.find_element_by_id('i0116')
     uname.send_keys(u)
@@ -2010,7 +2011,7 @@ def strong_validate_new_tp(driver,comp_object = None):
     compare_tp_objects(create_obj,result_obj)
 
 def prefill_providers(driver):
-    driver.refresh()
+    #driver.refresh()
     add_tp_button = driver.find_element_by_xpath('//button[contains(text(),"Add Provider")]')
     add_tp_button.click()
     co_name = get_random_name() + " transportation co."

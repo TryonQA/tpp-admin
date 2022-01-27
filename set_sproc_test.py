@@ -24,6 +24,10 @@ time.sleep(5)
 
 
 for tp in providers:
+    try:
+        driver.find_element_by_xpath('//button[@data-testid="clear"]').click()
+    except:
+        print('button disabled')
     t.text_to_search(driver,tp[0],t.NAME_SEARCH_KEY)
     time.sleep(3)
     t.click_entry(driver,0)
@@ -49,7 +53,8 @@ for tp in providers:
     else:
         t.tp_past_auto_ins(driver)
 
-    driver.refresh()
+    t.back_to_providers(driver)
+    time.sleep(2)
     #print(tp)
 
 

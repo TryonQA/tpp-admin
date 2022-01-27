@@ -15,5 +15,5 @@ driver = t.init_driver()
 t.login_tpp(driver,url)
 time.sleep(5)
 
-t.click_entry(driver,0)
+#t.click_entry(driver,0)
 t.prefill_providers(driver)

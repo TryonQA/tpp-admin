@@ -274,25 +274,25 @@ def get_current_company_data(driver):
         "County":l_data_text[19],
         "MainPhone":strip_non_numeric(l_data_text[21])[1:],
         "DispatchPhone":strip_non_numeric(l_data_text[23])[1:],
-        "MessagingMethod":l_data_text[25],
-        "BillingContactFirstName":l_data_text[27],
-        "BillingContactLastName":l_data_text[29],
-        "BillingEmailAddress":l_data_text[41],
-        "BillingAddressLine1":l_data_text[31],
-        "BillingCity":l_data_text[35],
-        "BillingZipCode":l_data_text[39],
-        "AccountNumber":l_data_text[43],
-        "BillingPhone":strip_non_numeric(l_data_text[45])[1:],
-        "OwnerFirstName":l_data_text[57],
-        "OwnerLastName":l_data_text[59],
-        "OwnerEmailAddress":l_data_text[61],
-        "OwnerPhone":strip_non_numeric(l_data_text[63])[1:],
-        "EmployerIdentificationNumber":l_data_text[53],
-        "LegalEntityBusinessName":l_data_text[55],
-        "PhysicalAddressLine1":l_data_text[73],
-        "PhysicalCity":l_data_text[77],
-        "PhysicalZipCode":l_data_text[81],
-        "NPINumber":l_data_text[105],
+        "MessagingMethod":l_data_text[29],
+        "BillingContactFirstName":l_data_text[31],
+        "BillingContactLastName":l_data_text[33],
+        "BillingEmailAddress":l_data_text[45],
+        "BillingAddressLine1":l_data_text[35],
+        "BillingCity":l_data_text[39],
+        "BillingZipCode":l_data_text[43],
+        "AccountNumber":l_data_text[47],
+        "BillingPhone":strip_non_numeric(l_data_text[49])[1:],
+        "OwnerFirstName":l_data_text[61],
+        "OwnerLastName":l_data_text[63],
+        "OwnerEmailAddress":l_data_text[65],
+        "OwnerPhone":strip_non_numeric(l_data_text[67])[1:],
+        "EmployerIdentificationNumber":l_data_text[57],
+        "LegalEntityBusinessName":l_data_text[59],
+        "PhysicalAddressLine1":l_data_text[77],
+        "PhysicalCity":l_data_text[81],
+        "PhysicalZipCode":l_data_text[85],
+        "NPINumber":l_data_text[109],
         "CommercialInsuranceCompanyName":ins_data_text[0],
         "CommercialInsurancePolicyNumber":ins_data_text[1],
         "CommercialAggregateAmount":strip_non_numeric(ins_data_text[4])[:-2],
@@ -302,34 +302,34 @@ def get_current_company_data(driver):
         "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[10])[:-2],
         "AutoPropertyDamage":strip_non_numeric(ins_data_text[11])[:-2],
         "AutoCombinedLimit":strip_non_numeric(ins_data_text[12])[:-2],
-        "CoverageAreas":l_data_text[109],
+        "CoverageAreas":l_data_text[113],
         
         #dropdowns
         "State": l_data_text[15],
-        "BillingState": l_data_text[37],
-        "LegalEntityStateCode": l_data_text[67],
-        "PhysicalState": l_data_text[79],
-        "LegalEntityTypeID": l_data_text[69],
-        "LegalEntityStatusID": l_data_text[71],
-        "TransportationProviderTypeID": l_data_text[83],
-        "TransportationProviderTierID": l_data_text[85],
+        "BillingState": l_data_text[41],
+        "LegalEntityStateCode": l_data_text[71],
+        "PhysicalState": l_data_text[83],
+        "LegalEntityTypeID": l_data_text[73],
+        "LegalEntityStatusID": l_data_text[75],
+        "TransportationProviderTypeID": l_data_text[87],
+        "TransportationProviderTierID": l_data_text[89],
         "CommercialInsuranceStrengthID": ins_data_text[3],
         "AutoInsuranceStrengthID": ins_data_text[8],
         
         #ADD BANK TODO
-        "BankName": l_data_text[47],
-        "BankAccountNumber": l_data_text[51],
-        "BankRoutingNumber": l_data_text[49],
+        "BankName": l_data_text[51],
+        "BankAccountNumber": l_data_text[55],
+        "BankRoutingNumber": l_data_text[53],
 
         #checkboxes
-        "HasReceivedProviderManual": parse_yes_no(l_data_text[87]),
-        "HasWheelchairVehiclesAvailable": parse_yes_no(l_data_text[91]),
-        "HasReceivedNEMTProviderManual": parse_yes_no(l_data_text[101]),
-        "HasSupplierDiversity": parse_yes_no(l_data_text[97]),
-        "HasRegulatedDrugTesting": parse_yes_no(l_data_text[95]),
-        "IsClearToTransport": parse_yes_no(l_data_text[93]),
-        "IsActive": parse_yes_no(l_data_text[99]),
-        "IsCompliant": parse_yes_no(l_data_text[103]),
+        "HasReceivedProviderManual": parse_yes_no(l_data_text[91]),
+        "HasWheelchairVehiclesAvailable": parse_yes_no(l_data_text[95]),
+        "HasReceivedNEMTProviderManual": parse_yes_no(l_data_text[105]),
+        "HasSupplierDiversity": parse_yes_no(l_data_text[101]),
+        "HasRegulatedDrugTesting": parse_yes_no(l_data_text[99]),
+        "IsClearToTransport": parse_yes_no(l_data_text[97]),
+        "IsActive": parse_yes_no(l_data_text[103]),
+        "IsCompliant": parse_yes_no(l_data_text[107]),
         "HasWorkersComp": parse_yes_no(ins_data_text[13])
     }
     
@@ -901,9 +901,11 @@ def complete_doc_upload(driver,doc_label):
     for db in date_buttons:
         db.click()
         if db == date_buttons[2]:
+            time.sleep(0.5)
             next_month = driver.find_element_by_xpath('//button[@aria-label="Next month"]')
             next_month.click()
         else:
+            time.sleep(0.5)
             pre_month = driver.find_element_by_xpath('//button[@aria-label="Previous month"]')
             pre_month.click()
         time.sleep(1.5)
@@ -945,7 +947,7 @@ def complete_driver_form(driver,is_active = True):
     save_driver_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_driver_button.click()
 
-    time.sleep(1)
+    time.sleep(3)
 
     back_button = driver.find_element_by_xpath('//a[contains(text(), "Back")]')
     back_button.click()
@@ -1095,6 +1097,9 @@ def view_provider_tests(driver):
     ## for vehicles ##
 
     vehicles_button = driver.find_element_by_xpath('//button[contains(text(), "Vehicles")]')
+    driver.execute_script("arguments[0].scrollIntoView();", vehicles_button)
+    time.sleep(1)
+    print(vehicles_button)
     vehicles_button.click()
     time.sleep(1)
 
@@ -1102,6 +1107,7 @@ def view_provider_tests(driver):
     print(v_initial_rows)
 
     add_vehicles_button = driver.find_element_by_xpath('//button[contains(text(),"Add Vehicle")]')
+    driver.execute_script("arguments[0].scrollIntoView();", add_vehicles_button)
     add_vehicles_button.click()
     complete_vehicle_form(driver)
 
@@ -1121,7 +1127,9 @@ def view_provider_tests(driver):
     test_doc_edit(driver)
     test_doc_delete(driver)
 
-    driver.refresh()
+    time.sleep(1)
+    back_to_providers(driver)
+
 
 def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,attribute=None):
     passed = True
@@ -1573,6 +1581,7 @@ def test_open_close_create_tp(driver):
 
 def test_delete_tp(driver):
     #check initial state
+    time.sleep(5)
     co_to_kill = driver.find_elements_by_xpath('//div[@data-field="TransportationProviderName"]/a')[0].text
 
     delete_buttons = driver.find_elements_by_xpath('//button[@data-testid="delete"]')
@@ -1639,7 +1648,7 @@ def test_edit_tp(driver):
     field.send_keys(new_name)
     save_button = driver.find_element_by_xpath('//button[contains(text(),"Save")]')
     save_button.click()
-    time.sleep(2)
+    time.sleep(4)
     still_create = driver.find_elements_by_xpath('//h6')
     if len(still_create) > 0:
         print('FAIL - TP edit save errors')
@@ -1929,9 +1938,10 @@ def get_sort_data(driver):
     return tags
 
 def find_not_ctt_tp(driver,section_key):
-
+    
     time.sleep(5)
     entries = int(get_reported_end(driver))
+    print(entries)
     to_do = []
     i = 0
     while i < entries:
@@ -1940,7 +1950,9 @@ def find_not_ctt_tp(driver,section_key):
 
     result_ent = None
     for ent_i in to_do:
+        print(ent_i)
         click_entry(driver,ent_i)
+        time.sleep(2)
         doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
         doc_button.click()
         time.sleep(2)

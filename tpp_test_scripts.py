@@ -78,6 +78,12 @@ def login_tpp(driver,url=active_url,login_key="admin"):
     username_field.send_keys(u)
     driver.find_element_by_xpath('//input[@id="idp-discovery-submit"]').click()
     time.sleep(3)
+    
+    password_field = driver.find_element_by_xpath('//input[@name="password"]')
+    password_field.send_keys(p)
+    driver.find_element_by_xpath('//input[@id="okta-signin-submit"]').click()
+    time.sleep(5)
+    """
     uname = driver.find_element_by_id('i0116')
     uname.send_keys(u)
 
@@ -96,6 +102,7 @@ def login_tpp(driver,url=active_url,login_key="admin"):
         if driver.find_element_by_xpath('//div[@class="row text-title"]').text == "Stay signed in?":
             c_button = driver.find_element_by_id('idSIButton9')
             c_button.click()
+    """
 
 
 def scroll_top(driver):
@@ -114,11 +121,21 @@ def open_filters_menu(driver):
     #f_knob.click()
 
 def close_filters_menu(driver):
+    ""
     f_knob = driver.find_element_by_xpath('//ul[@aria-labelledby="filter-label"]')
-    action = webdriver.common.action_chains.ActionChains(driver)
-    action.move_to_element_with_offset(f_knob, -4, 0)
-    action.click()
-    action.perform()
+    try:
+        action = webdriver.common.action_chains.ActionChains(driver)
+        offset = -4
+        action.move_to_element_with_offset(f_knob, 0, offset)
+        action.click()
+        action.perform()
+    except:
+        action = webdriver.common.action_chains.ActionChains(driver)
+        offset = -2
+        action.move_to_element_with_offset(f_knob, 0, offset)
+        action.click()
+        action.perform()
+    ""
 
 def get_company_entries(driver):
     companies = driver.find_elements_by_xpath('//a[@href="#"]')
@@ -142,7 +159,7 @@ def filter_clicker(driver,filter_buttons_list,close=True):
 def filter_reset(driver,open=True,close=True):
     if open:
         open_filters_menu(driver)
-    clear_button = driver.find_element_by_xpath('//button[@class="MuiButton-root MuiButton-contained MuiButton-containedPrimary MuiButton-sizeMedium MuiButton-containedSizeMedium MuiButton-fullWidth MuiButtonBase-root css-1lzpfma"]')
+    clear_button = driver.find_element_by_xpath('//button[contains(text(),"Clear Filter")]')
     clear_button.click()
     if close:
         close_filters_menu(driver)
@@ -241,7 +258,7 @@ def get_current_company_data(driver):
     #buttons = driver.find_elements_by_xpath('//button[@class="MuiButtonBase-root MuiTab-root MuiTab-textColorPrimary MuiTab-fullWidth"]')
     ins_button = driver.find_element_by_xpath('//button[contains(text(),"Insurance")]')
     ins_button.click()
-    ins_data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-item MuiGrid-grid-sm-12 MuiGrid-grid-md-6 MuiGrid-grid-lg-3 css-1mrm2vh"]/div/div/div[2]')
+    ins_data = driver.find_elements_by_xpath('//div[@class="MuiGrid-root MuiGrid-container MuiGrid-spacing-xs-2 css-isbt42"]/div/div/div/div')
     ins_data_text = []
     i_test = 0
     for i_pt in ins_data:
@@ -293,15 +310,15 @@ def get_current_company_data(driver):
         "PhysicalCity":l_data_text[81],
         "PhysicalZipCode":l_data_text[85],
         "NPINumber":l_data_text[109],
-        "CommercialInsuranceCompanyName":ins_data_text[0],
-        "CommercialInsurancePolicyNumber":ins_data_text[1],
-        "CommercialAggregateAmount":strip_non_numeric(ins_data_text[4])[:-2],
-        "AutoInsuranceCompanyName":ins_data_text[5],
-        "AutoInsurancePolicyNumber":ins_data_text[6],
-        "AutoBodilyInjuryPerson":strip_non_numeric(ins_data_text[9])[:-2],
-        "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[10])[:-2],
-        "AutoPropertyDamage":strip_non_numeric(ins_data_text[11])[:-2],
-        "AutoCombinedLimit":strip_non_numeric(ins_data_text[12])[:-2],
+        "CommercialInsuranceCompanyName":ins_data_text[87],
+        "CommercialInsurancePolicyNumber":ins_data_text[89],
+        "CommercialAggregateAmount":strip_non_numeric(ins_data_text[95])[:-2],
+        "AutoInsuranceCompanyName":ins_data_text[97],
+        "AutoInsurancePolicyNumber":ins_data_text[99],
+        "AutoBodilyInjuryPerson":strip_non_numeric(ins_data_text[105])[:-2],
+        "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[107])[:-2],
+        "AutoPropertyDamage":strip_non_numeric(ins_data_text[109])[:-2],
+        "AutoCombinedLimit":strip_non_numeric(ins_data_text[111])[:-2],
         "CoverageAreas":l_data_text[113],
         
         #dropdowns
@@ -313,8 +330,8 @@ def get_current_company_data(driver):
         "LegalEntityStatusID": l_data_text[75],
         "TransportationProviderTypeID": l_data_text[87],
         "TransportationProviderTierID": l_data_text[89],
-        "CommercialInsuranceStrengthID": ins_data_text[3],
-        "AutoInsuranceStrengthID": ins_data_text[8],
+        "CommercialInsuranceStrengthID": ins_data_text[93],
+        "AutoInsuranceStrengthID": ins_data_text[103],
         
         #ADD BANK TODO
         "BankName": l_data_text[51],
@@ -330,7 +347,7 @@ def get_current_company_data(driver):
         "IsClearToTransport": parse_yes_no(l_data_text[97]),
         "IsActive": parse_yes_no(l_data_text[103]),
         "IsCompliant": parse_yes_no(l_data_text[107]),
-        "HasWorkersComp": parse_yes_no(ins_data_text[13])
+        "HasWorkersComp": ""
     }
     
     return this_co_data
@@ -814,7 +831,7 @@ def click_all_date_buttons(driver,nextMonth = False):
 def dropdown_handler(driver,id,click_index):
     tries = 3
     scroll_top(driver)
-    st_dropdown = driver.find_element_by_xpath('//div[@id="'+id+'"]')
+    st_dropdown = driver.find_element_by_xpath('//input[@name="'+id+'"]//ancestor::div[1]/div')
     driver.execute_script("arguments[0].scrollIntoView();", st_dropdown)
     st_dropdown.click()
     time.sleep(1)
@@ -831,7 +848,7 @@ def dropdown_handler(driver,id,click_index):
 
 def dropdown_scraper(driver,id,click_index,attribute=None):
     scroll_top(driver)
-    st_dropdown = driver.find_element_by_xpath('//div[@id="'+id+'"]')
+    st_dropdown = driver.find_element_by_xpath('//input[@name="'+id+'"]//ancestor::div[1]/div')
     driver.execute_script("arguments[0].scrollIntoView();", st_dropdown)
     st_dropdown.click()
     time.sleep(1)
@@ -938,8 +955,8 @@ def complete_driver_form(driver,is_active = True):
     driver.find_element_by_xpath('//input[@name="EmergencyContactLastName"]').send_keys(last)
     driver.find_element_by_xpath('//input[@name="EmergencyContactPhone"]').send_keys(phone[0:3]+get_random_number(7))
 
-    dropdown_handler(driver,"mui-component-select-MessagingMethod",2)
-    dropdown_handler(driver,"mui-component-select-DriverLicenseIssuedInStateCode",random.randint(0,49))
+    dropdown_handler(driver,"MessagingMethod",2)
+    dropdown_handler(driver,"DriverLicenseIssuedInStateCode",random.randint(0,49))
 
     if is_active:
         driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
@@ -978,10 +995,10 @@ def complete_vehicle_form(driver):
     driver.find_element_by_xpath('//input[@name="VehicleModel"]').send_keys(model)
     driver.find_element_by_xpath('//input[@name="VehicleYear"]').send_keys(str(2000+random.randint(0,22)))
 
-    dropdown_handler(driver,"mui-component-select-LicenseStateCode",random.randint(0,49))
+    dropdown_handler(driver,"LicenseStateCode",random.randint(0,49))
     # TODO Waiting on fix -> VehicleTypeID
-    dropdown_handler(driver,"mui-component-select-VehicleTypeID",random.randint(0,13))
-    dropdown_handler(driver,"mui-component-select-VehicleColorID",random.randint(0,15))
+    dropdown_handler(driver,"VehicleTypeID",random.randint(0,13))
+    dropdown_handler(driver,"VehicleColorID",random.randint(0,15))
 
     driver.find_element_by_xpath('//span[contains(text(), "Active")]//ancestor::label[1]/span/input').click()
 
@@ -1097,9 +1114,9 @@ def view_provider_tests(driver):
     ## for vehicles ##
 
     vehicles_button = driver.find_element_by_xpath('//button[contains(text(), "Vehicles")]')
-    driver.execute_script("arguments[0].scrollIntoView();", vehicles_button)
+    scroll_top(driver)
+    #driver.execute_script("arguments[0].scrollIntoView();", vehicles_button)
     time.sleep(1)
-    print(vehicles_button)
     vehicles_button.click()
     time.sleep(1)
 
@@ -1135,7 +1152,7 @@ def sort_test(driver,sort_button_path,results_path,sort_forward,text_test=True,a
     passed = True
     sort_button = driver.find_element_by_xpath(sort_button_path)
     sort_button.click()
-    time.sleep(3)
+    time.sleep(4)
     results = driver.find_elements_by_xpath(results_path)
     results = results[1:]
     prev = None
@@ -1195,12 +1212,12 @@ def get_target_num_entries(driver):
 
 def get_reported_start(driver):
     page_readout = driver.find_element_by_xpath('//div[@class="MuiToolbar-root MuiToolbar-gutters MuiToolbar-regular MuiTablePagination-toolbar css-1wif0xq"]/p[2]').text
-    dash_i = page_readout.find('-')
+    dash_i = page_readout.find('–')
     return int(page_readout[0:dash_i])
 
 def get_reported_end(driver):
     page_readout = driver.find_element_by_xpath('//div[@class="MuiToolbar-root MuiToolbar-gutters MuiToolbar-regular MuiTablePagination-toolbar css-1wif0xq"]/p[2]').text
-    dash_i = page_readout.find('-')
+    dash_i = page_readout.find('–')
     space_i = page_readout.find(" ")
     return int(page_readout[dash_i+1:space_i])
 
@@ -1302,8 +1319,8 @@ def complete_create_tp_form(driver,company_name,save = True):
     #AddressLine2
     driver.find_element_by_xpath('//input[@name="City"]').send_keys(city)
     #State
-    dropdown_handler(driver,"mui-component-select-State",state_i)
-    state = dropdown_scraper(driver,"mui-component-select-State",state_i,"data-value")
+    dropdown_handler(driver,"State",state_i)
+    state = dropdown_scraper(driver,"State",state_i,"data-value")
     driver.find_element_by_xpath('//input[@name="ZipCode"]').send_keys(zipcode)
     driver.find_element_by_xpath('//input[@name="County"]').send_keys(county)
     m_phone = str(area_code+get_random_number(7))
@@ -1321,12 +1338,12 @@ def complete_create_tp_form(driver,company_name,save = True):
     driver.find_element_by_xpath('//input[@name="BillingEmailAddress"]').send_keys(c_last+email_end)
     driver.find_element_by_xpath('//input[@name="BillingAddressLine1"]').send_keys(address)
     #MessagingMethod
-    dropdown_handler(driver,"mui-component-select-DefaultDriverMessagingMethodID",2)
-    mm_type = dropdown_scraper(driver,"mui-component-select-DefaultDriverMessagingMethodID",2)
+    dropdown_handler(driver,"DefaultDriverMessagingMethodID",2)
+    mm_type = dropdown_scraper(driver,"DefaultDriverMessagingMethodID",2)
     #BillingAddressLine2
     driver.find_element_by_xpath('//input[@name="BillingCity"]').send_keys(city)
     #BillingState
-    dropdown_handler(driver,"mui-component-select-BillingState",state_i)
+    dropdown_handler(driver,"BillingState",state_i)
     driver.find_element_by_xpath('//input[@name="BillingZipCode"]').send_keys(zipcode)
     acct = get_random_number(8)+get_random_char(4)
     driver.find_element_by_xpath('//input[@name="AccountNumber"]').send_keys(acct)
@@ -1348,30 +1365,30 @@ def complete_create_tp_form(driver,company_name,save = True):
     driver.find_element_by_xpath('//input[@name="LegalEntityBusinessName"]').send_keys(email_end[1:4]+" inc.")
     #LegalEntityStateCode
     l_state_i = random.randint(0,49)
-    dropdown_handler(driver,"mui-component-select-LegalEntityStateCode",l_state_i)
-    l_state = dropdown_scraper(driver,"mui-component-select-LegalEntityStateCode",l_state_i,"data-value")
+    dropdown_handler(driver,"LegalEntityStateCode",l_state_i)
+    l_state = dropdown_scraper(driver,"LegalEntityStateCode",l_state_i,"data-value")
     driver.find_element_by_xpath('//input[@name="PhysicalAddressLine1"]').send_keys(address)
     #PhysicalAddressLine2
     driver.find_element_by_xpath('//input[@name="PhysicalCity"]').send_keys(city)
     #PhysicalState
-    dropdown_handler(driver,"mui-component-select-PhysicalState",state_i)
+    dropdown_handler(driver,"PhysicalState",state_i)
     driver.find_element_by_xpath('//input[@name="PhysicalZipCode"]').send_keys(zipcode)
 
 
     #LegalEntityTypeID
     ent_i = random.randint(0,6)
-    dropdown_handler(driver,"mui-component-select-LegalEntityTypeID",ent_i)
-    entity = dropdown_scraper(driver,"mui-component-select-LegalEntityTypeID",ent_i)
+    dropdown_handler(driver,"LegalEntityTypeID",ent_i)
+    entity = dropdown_scraper(driver,"LegalEntityTypeID",ent_i)
     #LegalEntityStatusID
-    dropdown_handler(driver,"mui-component-select-LegalEntityStatusID",1)
-    status = dropdown_scraper(driver,"mui-component-select-LegalEntityStatusID",1)
+    dropdown_handler(driver,"LegalEntityStatusID",1)
+    status = dropdown_scraper(driver,"LegalEntityStatusID",1)
 
     #TransportationProviderTypeID
-    dropdown_handler(driver,"mui-component-select-TransportationProviderTypeID",1)
-    p_type = dropdown_scraper(driver,"mui-component-select-TransportationProviderTypeID",1)
+    dropdown_handler(driver,"TransportationProviderTypeID",1)
+    p_type = dropdown_scraper(driver,"TransportationProviderTypeID",1)
     #TransportationProviderTierID
-    dropdown_handler(driver,"mui-component-select-TransportationProviderTierID",1)
-    p_tier = dropdown_scraper(driver,"mui-component-select-TransportationProviderTierID",1)
+    dropdown_handler(driver,"TransportationProviderTierID",1)
+    p_tier = dropdown_scraper(driver,"TransportationProviderTierID",1)
 
     npi = str(get_random_number(6))
     driver.find_element_by_xpath('//input[@name="NPINumber"]').send_keys(npi)
@@ -1388,10 +1405,10 @@ def complete_create_tp_form(driver,company_name,save = True):
         driver.find_element_by_xpath('//input[@name="AutoInsurancePolicyNumber"]').send_keys(policy2)
 
     #InsuranceStrengthID
-    dropdown_handler(driver,"mui-component-select-CommercialInsuranceStrengthID",1)
-    com_strength = dropdown_scraper(driver,"mui-component-select-CommercialInsuranceStrengthID",1)
-    dropdown_handler(driver,"mui-component-select-AutoInsuranceStrengthID",1)
-    ai_strength = dropdown_scraper(driver,"mui-component-select-AutoInsuranceStrengthID",1)
+    dropdown_handler(driver,"CommercialInsuranceStrengthID",1)
+    com_strength = dropdown_scraper(driver,"CommercialInsuranceStrengthID",1)
+    dropdown_handler(driver,"AutoInsuranceStrengthID",1)
+    ai_strength = dropdown_scraper(driver,"AutoInsuranceStrengthID",1)
     comm_agg=str(random.randint(1,1000)*10000)
     bi_pp=str(random.randint(1,1000)*10000)
     bi_pa=str(random.randint(1,1000)*10000)

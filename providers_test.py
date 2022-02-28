@@ -12,7 +12,7 @@ if len(args) > 1:
     if args[1] == "dev":
         url = t.dev_url
 ""
-t.test_accounting(url)
+#t.test_accounting(url)
 ""
 driver = t.init_driver()
 
@@ -72,7 +72,7 @@ t.view_provider_tests(driver)
 t.ctt_test(driver,t.TP_KEY)
 
 #DELETE TEST
-t.test_delete_tp(driver)
+#t.test_delete_tp(driver)
 ""
 #NAV TESTS
 t.run_all_sort_tests(driver)

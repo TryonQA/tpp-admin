@@ -828,11 +828,16 @@ def click_all_date_buttons(driver,nextMonth = False):
         dates[random.randint(0,len(dates)-2)].click()
         time.sleep(0.5)
 
-def dropdown_handler(driver,id,click_index):
+def dropdown_handler(driver,id,click_index,override_xpath = None):
     tries = 3
     scroll_top(driver)
-    st_dropdown = driver.find_element_by_xpath('//input[@name="'+id+'"]//ancestor::div[1]/div')
+    if override_xpath == None:
+        xpath = '//input[@name="'+id+'"]//ancestor::div[1]/div'
+    else:
+        xpath = override_xpath
+    st_dropdown = driver.find_element_by_xpath(xpath)
     driver.execute_script("arguments[0].scrollIntoView();", st_dropdown)
+    time.sleep(1)
     st_dropdown.click()
     time.sleep(1)
     while tries > 0:
@@ -1056,6 +1061,7 @@ def click_documents(driver):
         time.sleep(1)
 
 def test_doc_upload(driver):
+    scroll_top(driver)
     if len(driver.find_elements_by_xpath('//button[contains(text(),"Documents")]')) > 0:
         doc_button = driver.find_element_by_xpath('//button[contains(text(),"Documents")]')
         doc_button.click()
@@ -1076,6 +1082,7 @@ def test_doc_upload(driver):
     else:
         complete_doc_upload(driver,None)
     #evaluate doc state
+    time.sleep(2)
     final_docs = get_document_upload_states(driver)
 
     if final_docs[check_index] == None:
@@ -1243,7 +1250,7 @@ def page_entries_test(driver):
         num_entries_dropdown_id = dropdown.get_attribute('id')
         print(num_entries_dropdown_id)
         #watch this, getting some odd behavior from big entry list loading
-        dropdown_handler(driver,num_entries_dropdown_id,i)
+        dropdown_handler(driver,num_entries_dropdown_id,i,'//div[@id="'+num_entries_dropdown_id+'"]')
         time.sleep(10)
         evaluate_entries_per_page(driver)
 

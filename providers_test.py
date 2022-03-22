@@ -72,7 +72,7 @@ t.view_provider_tests(driver)
 t.ctt_test(driver,t.TP_KEY)
 
 #DELETE TEST
-#t.test_delete_tp(driver)
+t.test_delete_tp(driver)
 ""
 #NAV TESTS
 t.run_all_sort_tests(driver)

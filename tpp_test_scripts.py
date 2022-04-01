@@ -594,10 +594,12 @@ def clear_element_by_key(driver,element_key):
     
     return clear_element
 
-def text_to_search(driver,search_text,element_key):
+def text_to_search(driver,search_text,element_key,pause = True):
     search_field = search_element_by_key(driver,element_key)
+    search_field.send_keys(Keys.CONTROL + 'a')
     search_field.send_keys(search_text)
-    time.sleep(2)
+    if pause:
+        time.sleep(2)
 
 def search_test(driver,search_list,test_field_key,expected_results=None):
     possibles = len(search_list)
@@ -1664,7 +1666,9 @@ def test_edit_tp_invalid_field(driver):
     back_button.click()
 
 def test_edit_tp(driver):
+    time.sleep(1.5)
     open_tp_edit(driver,0)
+    time.sleep(1.5)
     new_name = get_random_name()
     field = driver.find_element_by_xpath('//input[@name="OwnerFirstName"]')
     field.send_keys(Keys.CONTROL + "a")

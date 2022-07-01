@@ -14,7 +14,7 @@ driver = t.init_driver()
 
 t.login_tpp(driver,url)
 time.sleep(2)
-t.create_drivers(driver,1)
+t.create_drivers(driver,100)
 
 #DRIVER CLICK
 t.go_to_drivers(driver)

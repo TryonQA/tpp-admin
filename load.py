@@ -4,7 +4,10 @@ import time
 import sys
 
 CLEANUP = False
-HUNDRED = False
+#standard so far 0.26
+#QA borderline 1.95
+DELAY = 0.16
+#DEFAULTS for no arg use
 users = 1
 request_num = 50
 
@@ -29,10 +32,6 @@ for u in range(users):
 
 for driver in driver_list:
     t.login_tpp(driver,url)
-    if HUNDRED:
-        dropdown = driver.find_element_by_xpath('//div[@class="MuiTablePagination-select MuiSelect-select MuiSelect-standard MuiInputBase-input css-1cccqvr"]')
-        num_entries_dropdown_id = dropdown.get_attribute('id')
-        t.dropdown_handler(driver,num_entries_dropdown_id,5,'//div[@id="'+num_entries_dropdown_id+'"]')
 
 time.sleep(5)
 
@@ -54,7 +53,7 @@ for r in range(request_num):
         else:
             down = True
             end-=1
-    time.sleep(0.26)
+    time.sleep(DELAY)
     for driver in driver_list:
         t.text_to_search(driver,current_search,t.NAME_SEARCH_KEY,False)
 

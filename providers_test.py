@@ -47,14 +47,14 @@ t.run_single_filter_test(driver,[3,4])
 ""
 #FULL
 ""
-should_partial = ['bobby','end','rob','be']
+should_partial = ['bobby','end','rob']
 t.search_test(driver,should_partial,t.NAME_SEARCH_KEY)
-should_full = ["Winmunax Direct Group",'Melissa Medical Transport','Needed For Testing Inc.']
+should_full = ["Winmunax Direct Group",'Melissa Medical Transport']
 t.search_test(driver,should_full,t.NAME_SEARCH_KEY,1)
 shouldnt = ["zzzz"]
 t.search_test(driver,shouldnt,t.NAME_SEARCH_KEY,0)
 # TODO add accumulator in test function to measure total passes v fails
-should_coverage = ["n f","bos","97"]
+should_coverage = ["bos","97"]
 t.search_test(driver,should_coverage,t.COVERAGE_SEARCH_KEY)
 should_full_coverage = ["97239","San Francisco, Los Angeles, San Diego"]
 t.search_test(driver,should_full_coverage,t.COVERAGE_SEARCH_KEY)
@@ -68,6 +68,8 @@ t.test_clear_search(driver,t.NAME_SEARCH_KEY)
 ""
 #PROVIDER TESTS
 t.view_provider_tests(driver)
+t.users_tests(driver)
+t.notes_tests(driver)
 ""
 t.ctt_test(driver,t.TP_KEY)
 
@@ -79,8 +81,12 @@ t.run_all_sort_tests(driver)
 
 t.page_entries_test(driver)
 t.page_change_test(driver,3)
-
+""
+#t.onboarding_tests(driver)
 time.sleep(3)
+
+""
+
 
 driver.close()
 

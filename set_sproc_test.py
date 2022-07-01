@@ -2,21 +2,21 @@ import tpp_test_scripts as t
 import time
 
 providers = [
-("acloihn transportation co.","auto",None),
-("sil transportation co.","doc","Company Permit"),
-("abase transportation co.","docexp","Company Permit"),
-("eruhny transportation co.","doc","Direct Deposit"),
-("cressey° transportation co.","doc","Disclosure of Convictions"),
-("b^ra_or-l r+d=j transportation co.","doc","Exhibit C Business Associate Agreement"),
-("#stid transportation co.","doc","Insurance Acord 25 (Automobile and General Liability)"),
-("b*rl transportation co.","docexp","Insurance Acord 25 (Automobile and General Liability)"),
-("m.use transportation co.","doc","Provider Questionnaire"),
-("{b|k} transportation co.","doc","Transportation Provider Agreement (TPA) v10.16.2019"),
-("uston transportation co.","doc","Voided Check"),
-("(cr"+'%'+"d) tran$portation co.","doc","W-9"),
-("juck transportation co.","doc","Disclosure of Ownership"),
-("ecluck transportation co.","doc","BGC"),
-("chebbu transportation co.","doc","Insurance Credentialing List")]
+("ustabb transportation co.","auto",None),
+("muga transportation co.","doc","Company Permit"),
+("chute transportation co.","docexp","Company Permit"),
+("cate transportation co.","doc","Direct Deposit"),
+("chun transportation co.","doc","Disclosure of Convictions"),
+("suck transportation co.","doc","Exhibit C Business Associate Agreement"),
+("gab transportation co.","doc","Insurance Acord 25 (Automobile and General Liability)"),
+("gitt transportation co.","docexp","Insurance Acord 25 (Automobile and General Liability)"),
+("jitt transportation co.","doc","Provider Questionnaire"),
+("nugget transportation co.","doc","Transportation Provider Agreement (TPA) v10.16.2019"),
+("jute transportation co.","doc","Voided Check"),
+("gresea transportation co.","doc","W-9"),
+("imicky transportation co.","doc","Disclosure of Ownership"),
+("ceg transportation co.","doc","BGC"),
+("cig transportation co.","doc","Insurance Credentialing List")]
 
 driver = t.init_driver()
 t.login_tpp(driver)

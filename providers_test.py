@@ -54,7 +54,7 @@ t.search_test(driver,should_full,t.NAME_SEARCH_KEY,1)
 shouldnt = ["zzzz"]
 t.search_test(driver,shouldnt,t.NAME_SEARCH_KEY,0)
 # TODO add accumulator in test function to measure total passes v fails
-should_coverage = ["bos","97"]
+should_coverage = ["bos","city"]
 t.search_test(driver,should_coverage,t.COVERAGE_SEARCH_KEY)
 should_full_coverage = ["97239","San Francisco, Los Angeles, San Diego"]
 t.search_test(driver,should_full_coverage,t.COVERAGE_SEARCH_KEY)

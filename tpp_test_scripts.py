@@ -333,7 +333,7 @@ def get_current_company_data(driver):
         "ZipCode":l_data_text[17],
         "County":l_data_text[19],
         "MainPhone":strip_non_numeric(l_data_text[21])[1:],
-        "DispatchPhone":strip_non_numeric(l_data_text[23])[1:],
+        "DispatchPhone":strip_non_numeric(l_data_text[25])[1:],
         "MessagingMethod":l_data_text[29],
         "BillingContactFirstName":l_data_text[31],
         "BillingContactLastName":l_data_text[33],
@@ -341,45 +341,45 @@ def get_current_company_data(driver):
         "BillingAddressLine1":l_data_text[35],
         "BillingCity":l_data_text[39],
         "BillingZipCode":l_data_text[43],
-        "AccountNumber":l_data_text[47],
-        "BillingPhone":strip_non_numeric(l_data_text[49])[1:],
-        "OwnerFirstName":l_data_text[61],
-        "OwnerLastName":l_data_text[63],
-        "OwnerEmailAddress":l_data_text[65],
-        "OwnerPhone":strip_non_numeric(l_data_text[67])[1:],
-        "EmployerIdentificationNumber":l_data_text[57],
-        "LegalEntityBusinessName":l_data_text[59],
-        "PhysicalAddressLine1":l_data_text[77],
-        "PhysicalCity":l_data_text[81],
-        "PhysicalZipCode":l_data_text[85],
+        #"AccountNumber":l_data_text[87],
+        "BillingPhone":strip_non_numeric(l_data_text[47])[1:],
+        "OwnerFirstName":l_data_text[59],
+        "OwnerLastName":l_data_text[61],
+        "OwnerEmailAddress":l_data_text[63],
+        "OwnerPhone":strip_non_numeric(l_data_text[65])[1:],
+        "EmployerIdentificationNumber":l_data_text[55],
+        "LegalEntityBusinessName":l_data_text[57],
+        "PhysicalAddressLine1":l_data_text[75],
+        "PhysicalCity":l_data_text[79],
+        "PhysicalZipCode":l_data_text[83],
         "NPINumber":l_data_text[97],
-        "CommercialInsuranceCompanyName":ins_data_text[87],
-        "CommercialInsurancePolicyNumber":ins_data_text[89],
-        "CommercialAggregateAmount":strip_non_numeric(ins_data_text[95])[:-2],
-        "AutoInsuranceCompanyName":ins_data_text[97],
-        "AutoInsurancePolicyNumber":ins_data_text[99],
-        "AutoBodilyInjuryPerson":strip_non_numeric(ins_data_text[105])[:-2],
-        "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[107])[:-2],
-        "AutoPropertyDamage":strip_non_numeric(ins_data_text[109])[:-2],
-        "AutoCombinedLimit":strip_non_numeric(ins_data_text[111])[:-2],
+        "CommercialInsuranceCompanyName":ins_data_text[85],
+        "CommercialInsurancePolicyNumber":ins_data_text[87],
+        "CommercialAggregateAmount":strip_non_numeric(ins_data_text[93])[:-2],
+        "AutoInsuranceCompanyName":ins_data_text[95],
+        "AutoInsurancePolicyNumber":ins_data_text[97],
+        "AutoBodilyInjuryPerson":strip_non_numeric(ins_data_text[103])[:-2],
+        "AutoBodilyInjuryAccident":strip_non_numeric(ins_data_text[105])[:-2],
+        "AutoPropertyDamage":strip_non_numeric(ins_data_text[107])[:-2],
+        "AutoCombinedLimit":strip_non_numeric(ins_data_text[109])[:-2],
         "CoverageAreas":l_data_text[101],
         
         #dropdowns
         "State": l_data_text[15],
         "BillingState": l_data_text[41],
-        "LegalEntityStateCode": l_data_text[71],
-        "PhysicalState": l_data_text[83],
-        "LegalEntityTypeID": l_data_text[73],
-        "LegalEntityStatusID": l_data_text[75],
-        "TransportationProviderTypeID": l_data_text[87],
+        "LegalEntityStateCode": l_data_text[69],
+        "PhysicalState": l_data_text[81],
+        "LegalEntityTypeID": l_data_text[71],
+        "LegalEntityStatusID": l_data_text[73],
+        "TransportationProviderTypeID": l_data_text[85],
         #"TransportationProviderTierID": l_data_text[89],
-        "CommercialInsuranceStrengthID": ins_data_text[93],
-        "AutoInsuranceStrengthID": ins_data_text[103],
+        "CommercialInsuranceStrengthID": ins_data_text[91],
+        "AutoInsuranceStrengthID": ins_data_text[101],
         
         #ADD BANK TODO
-        "BankName": l_data_text[51],
-        "BankAccountNumber": l_data_text[55],
-        "BankRoutingNumber": l_data_text[53],
+        "BankName": l_data_text[49],
+        "BankAccountNumber": l_data_text[53],
+        "BankRoutingNumber": l_data_text[51],
 
         #checkboxes
         #"HasReceivedProviderManual": parse_yes_no(l_data_text[91]),
@@ -623,9 +623,9 @@ def run_clear_filter_test(driver):
 def search_element_by_key(driver,element_key):
     time.sleep(0.5)
     if element_key == NAME_SEARCH_KEY:
-        element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]')
+        element = driver.find_element_by_xpath('//input[@placeholder="Search for provider"]')
     if element_key == COVERAGE_SEARCH_KEY:
-        element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]')
+        element = driver.find_element_by_xpath('//input[@placeholder="Search for provider"]')
     if element_key == DRIVER_SEARCH_KEY:
         element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]')
     if element_key == VEHICLE_SEARCH_KEY:
@@ -635,9 +635,9 @@ def search_element_by_key(driver,element_key):
 
 def clear_element_by_key(driver,element_key):
     if element_key == NAME_SEARCH_KEY:
-        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by name"]//ancestor::div[1]/div/button')
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for provider"]//ancestor::div[1]/div/button')
     if element_key == COVERAGE_SEARCH_KEY:
-        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search by coverage area"]//ancestor::div[1]/div/button')
+        clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for provider"]//ancestor::div[1]/div/button')
     if element_key == DRIVER_SEARCH_KEY:
         clear_element = driver.find_element_by_xpath('//input[@placeholder="Search for a Driver"]//ancestor::div[1]/div/button')
     if element_key == VEHICLE_SEARCH_KEY:
@@ -702,23 +702,16 @@ def search_test(driver,search_list,test_field_key,expected_results=None):
             else:
                 print(res)
             if expected_results != 0:
-                if test_field_key == NAME_SEARCH_KEY:
-                    if to_search_to_check in name.lower() or to_search_to_check in res["OwnerFirstName"].lower() or \
-                        to_search_to_check in res["OwnerLastName"].lower() or to_search_to_check in res["LegalEntityBusinessName"].lower():
+                if test_field_key == NAME_SEARCH_KEY or test_field_key == COVERAGE_SEARCH_KEY:
+                    if to_search_to_check in name.lower() or to_search_to_check in res["OwnerFirstName"].lower() or to_search_to_check in res["CoverageAreas"].lower() or\
+                        to_search_to_check in res["OwnerLastName"].lower() or to_search_to_check in res["LegalEntityBusinessName"].lower() or to_search_to_check in res["EmailAddress"].lower():
                         if to_search_to_check in name.lower():
                             print("PASS - Company name")
                         else:
-                            print("PASS - Owner info")
+                            print("PASS - Other Co. info")
                         passing_results += 1
                     else:
                         print("FAIL company search")
-                elif test_field_key == COVERAGE_SEARCH_KEY:
-                    print(res["CoverageAreas"].lower())
-                    if to_search_to_check in res["CoverageAreas"].lower():
-                        print("PASS")
-                        passing_results += 1
-                    else:
-                        print("FAIL coverage area search")
                 elif test_field_key == DRIVER_SEARCH_KEY:
                     if to_search_to_check in res.lower():
                         print('PASS driver search')
@@ -1432,8 +1425,8 @@ def complete_create_tp_form(driver,company_name,save = True):
     #BillingState
     dropdown_handler(driver,"BillingState",state_i)
     driver.find_element_by_xpath('//input[@name="BillingZipCode"]').send_keys(zipcode)
-    acct = get_random_number(8)+get_random_char(4)
-    driver.find_element_by_xpath('//input[@name="AccountNumber"]').send_keys(acct)
+    #acct = get_random_number(8)+get_random_char(4)
+    #driver.find_element_by_xpath('//input[@name="AccountNumber"]').send_keys(acct)
     b_phone = str(area_code+get_random_number(7))
     driver.find_element_by_xpath('//input[@name="BillingPhone"]').send_keys(b_phone)
     #BillingPhoneCountryCode
@@ -1509,11 +1502,11 @@ def complete_create_tp_form(driver,company_name,save = True):
     #driver.find_element_by_xpath('//input[@name="AutoCombinedLimit"]').send_keys(combined)
 
     bank = get_random_char(1)+". "+get_random_char(1)+". "+get_random_name()+get_random_name()+" bank"
-    b_acct = get_random_number(12)
-    b_route = get_random_number(9)
+    b_acct = "" #get_random_number(12)
+    b_route = "" #get_random_number(9)
     driver.find_element_by_xpath('//input[@name="BankName"]').send_keys(bank)
-    driver.find_element_by_xpath('//input[@name="BankAccountNumber"]').send_keys(b_acct)
-    driver.find_element_by_xpath('//input[@name="BankRoutingNumber"]').send_keys(b_route)
+    #driver.find_element_by_xpath('//input[@name="BankAccountNumber"]').send_keys(b_acct)
+    #driver.find_element_by_xpath('//input[@name="BankRoutingNumber"]').send_keys(b_route)
 
 
     driver.find_element_by_xpath('//textarea[@rows="10"]').send_keys(city)
@@ -1537,7 +1530,7 @@ def complete_create_tp_form(driver,company_name,save = True):
         "BillingAddressLine1":address,
         "BillingCity":city,
         "BillingZipCode":zipcode,
-        "AccountNumber":acct,
+        #"AccountNumber":acct,
         "BillingPhone":b_phone,
         "MessagingMethod":mm_type,
         "OwnerFirstName":o_first,
@@ -1574,8 +1567,8 @@ def complete_create_tp_form(driver,company_name,save = True):
         "AutoInsuranceStrengthID": ai_strength,
 
         "BankName": bank,
-        "BankAccountNumber": "xxxxxxxx"+b_acct[-4:],
-        "BankRoutingNumber": "xxxxx"+b_route[-4:],
+        "BankAccountNumber": "xxxxxxxx"+b_acct[-4:] if len(b_acct)>0 else "",
+        "BankRoutingNumber": "xxxxx"+b_route[-4:] if len(b_route)>0 else "",
 
         #checkboxes
         #"HasReceivedProviderManual": False,
@@ -1586,7 +1579,7 @@ def complete_create_tp_form(driver,company_name,save = True):
         "IsClearToTransport": False,
         "IsActive": True,
         #"IsCompliant": False,
-        "HasWorkersComp": False
+        "HasWorkersComp": ""
 
     }
 
